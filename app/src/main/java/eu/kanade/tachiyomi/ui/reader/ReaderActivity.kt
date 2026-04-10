@@ -193,16 +193,16 @@ class ReaderActivity : BaseActivity() {
     // ── Mokuro dictionary popup state ────────────────────────────────────────
     private val jmdictService = Injekt.get<JmdictService>()
     private val getSyncAnchors = Injekt.get<GetSyncAnchors>()
-    private val _dictionaryBlock = mutableStateOf<MokuroBlock?>(null)
-    private val _dictionaryWord = mutableStateOf<String>("")
+    private val dictionaryBlockState = mutableStateOf<MokuroBlock?>(null)
+    private val dictionaryWordState = mutableStateOf<String>("")
 
     /** Called from [MokuroOverlayView] (on main thread) to show the dictionary popup. */
     fun showDictionary(block: MokuroBlock, word: String) {
-        _dictionaryWord.value = word
-        _dictionaryBlock.value = block
+        dictionaryWordState.value = word
+        dictionaryBlockState.value = block
     }
     private fun dismissDictionary() {
-        _dictionaryBlock.value = null
+        dictionaryBlockState.value = null
     }
 
     /** Opens the paired EN volume at the corresponding page via sync anchors. */
@@ -407,9 +407,9 @@ class ReaderActivity : BaseActivity() {
             }
 
             // Mokuro dictionary popup
-            val dictionaryBlock = _dictionaryBlock.value
+            val dictionaryBlock = dictionaryBlockState.value
             if (dictionaryBlock != null) {
-                val word = _dictionaryWord.value
+                val word = dictionaryWordState.value
                 val entry = jmdictService.lookup(word)
                     ?: jmdictService.lookup(dictionaryBlock.text)
                 if (entry != null) {
@@ -423,7 +423,7 @@ class ReaderActivity : BaseActivity() {
                         onTokenTap = { tappedWord ->
                             val newEntry = jmdictService.lookup(tappedWord)
                             if (newEntry != null) {
-                                _dictionaryWord.value = tappedWord
+                                dictionaryWordState.value = tappedWord
                             }
                         },
                         onDismiss = { dismissDictionary() },
