@@ -1466,6 +1466,16 @@ class ReaderViewModel @JvmOverloads constructor(
         }
     }
 
+    /** Returns the [Manga] for an arbitrary manga id, or null. */
+    suspend fun getMangaById(mangaId: Long): Manga? = getManga.await(mangaId)
+
+    /** Returns the id of the first (lowest chapter number) chapter of [mangaId], or null. */
+    suspend fun getFirstChapterId(mangaId: Long): Long? {
+        return getChaptersByMangaId.await(mangaId)
+            .minByOrNull { it.chapterNumber }
+            ?.id
+    }
+
     @Immutable
     data class State(
         val manga: Manga? = null,

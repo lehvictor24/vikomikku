@@ -28,6 +28,7 @@ data class MangaUpdate(
     // SY -->
     val filteredScanlators: List<String>? = null,
     // SY <--
+    val pairedEnMangaId: Long? = null,
 )
 
 fun Manga.toMangaUpdate(): MangaUpdate {

@@ -36,6 +36,7 @@ data class Manga(
     val favoriteModifiedAt: Long?,
     val version: Long,
     val notes: String,
+    val pairedEnMangaId: Long? = null,
 ) : Serializable {
 
     // SY -->

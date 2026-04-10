@@ -143,6 +143,7 @@ import tachiyomi.domain.manga.interactor.GetMangaWithChapters
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
 import tachiyomi.domain.manga.interactor.GetMergedReferencesById
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
+import tachiyomi.domain.manga.interactor.PairEnVolume
 import tachiyomi.domain.manga.interactor.SetCustomMangaInfo
 import tachiyomi.domain.manga.interactor.SetMangaChapterFlags
 import tachiyomi.domain.manga.interactor.UpdateMergedSettings
@@ -234,6 +235,7 @@ class MangaScreenModel(
     private val insertLibraryUpdateErrorMessages: InsertLibraryUpdateErrorMessages = Injekt.get(),
     private val deleteChaptersFromDb: DeleteChapters = Injekt.get(),
     // KMK <--
+    private val pairEnVolume: PairEnVolume = Injekt.get(),
 ) : StateScreenModel<MangaScreenModel.State>(State.Loading) {
 
     private val successState: State.Success?
@@ -1919,6 +1921,8 @@ class MangaScreenModel(
         data object ClearManga : Dialog
         // KMK <--
 
+        data object PairEnVolume : Dialog
+
         data object SettingsSheet : Dialog
         data object TrackSheet : Dialog
         data object FullCover : Dialog
@@ -1952,6 +1956,17 @@ class MangaScreenModel(
     fun setExcludedScanlators(excludedScanlators: Set<String>) {
         screenModelScope.launchIO {
             setExcludedScanlators.await(mangaId, excludedScanlators)
+        }
+    }
+
+    fun showPairEnVolumeDialog() {
+        updateSuccessState { it.copy(dialog = Dialog.PairEnVolume) }
+    }
+
+    fun pairWithEnManga(enMangaId: Long?) {
+        val jpMangaId = successState?.manga?.id ?: return
+        screenModelScope.launchNonCancellable {
+            pairEnVolume.await(jpMangaId, enMangaId)
         }
     }
 

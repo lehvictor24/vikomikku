@@ -1,0 +1,9 @@
+ALTER TABLE mangas ADD COLUMN paired_en_manga_id INTEGER;
+
+CREATE TABLE IF NOT EXISTS sync_anchors (
+    manga_id INTEGER NOT NULL,
+    jp_page INTEGER NOT NULL,
+    en_page INTEGER NOT NULL,
+    PRIMARY KEY(manga_id, jp_page),
+    FOREIGN KEY(manga_id) REFERENCES mangas(_id) ON DELETE CASCADE
+);

@@ -182,6 +182,7 @@ fun MangaScreen(
     onOpenPagePreview: (Int) -> Unit,
     onMorePreviewsClicked: () -> Unit,
     previewsRowCount: Int,
+    onClickPairEnVolume: (() -> Unit)?,
     // SY <--
 
     // For bottom action menu
@@ -258,6 +259,7 @@ fun MangaScreen(
             onOpenPagePreview = onOpenPagePreview,
             onMorePreviewsClicked = onMorePreviewsClicked,
             previewsRowCount = previewsRowCount,
+            onClickPairEnVolume = onClickPairEnVolume,
             // SY <--
             onMultiBookmarkClicked = onMultiBookmarkClicked,
             onMultiMarkAsReadClicked = onMultiMarkAsReadClicked,
@@ -320,6 +322,7 @@ fun MangaScreen(
             onOpenPagePreview = onOpenPagePreview,
             onMorePreviewsClicked = onMorePreviewsClicked,
             previewsRowCount = previewsRowCount,
+            onClickPairEnVolume = onClickPairEnVolume,
             // SY <--
             onMultiBookmarkClicked = onMultiBookmarkClicked,
             onMultiMarkAsReadClicked = onMultiMarkAsReadClicked,
@@ -392,6 +395,7 @@ private fun MangaScreenSmallImpl(
     onOpenPagePreview: (Int) -> Unit,
     onMorePreviewsClicked: () -> Unit,
     previewsRowCount: Int,
+    onClickPairEnVolume: (() -> Unit)?,
     // SY <--
 
     // For bottom action menu
@@ -506,6 +510,7 @@ private fun MangaScreenSmallImpl(
                 onClickRecommend = onRecommendClicked.takeIf { state.showRecommendationsInOverflow },
                 onClickMergedSettings = onMergedSettingsClicked.takeIf { state.manga.source == MERGED_SOURCE_ID },
                 onClickMerge = onMergeClicked.takeIf { state.showMergeInOverflow },
+                onClickPairEnVolume = onClickPairEnVolume.takeIf { state.manga.favorite },
                 // SY <--
                 actionModeCounter = selectedChapterCount,
                 onCancelActionMode = { onAllChapterSelected(false) },
@@ -856,6 +861,7 @@ private fun MangaScreenLargeImpl(
     onOpenPagePreview: (Int) -> Unit,
     onMorePreviewsClicked: () -> Unit,
     previewsRowCount: Int,
+    onClickPairEnVolume: (() -> Unit)?,
     // SY <--
 
     // For bottom action menu
@@ -962,6 +968,7 @@ private fun MangaScreenLargeImpl(
                 onClickRecommend = onRecommendClicked.takeIf { state.showRecommendationsInOverflow },
                 onClickMergedSettings = onMergedSettingsClicked.takeIf { state.manga.source == MERGED_SOURCE_ID },
                 onClickMerge = onMergeClicked.takeIf { state.showMergeInOverflow },
+                onClickPairEnVolume = onClickPairEnVolume.takeIf { state.manga.favorite },
                 // SY <--
                 actionModeCounter = selectedChapterCount,
                 onSelectAll = { onAllChapterSelected(true) },

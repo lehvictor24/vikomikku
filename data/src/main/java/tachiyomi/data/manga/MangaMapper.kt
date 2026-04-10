@@ -37,6 +37,7 @@ object MangaMapper {
         @Suppress("UNUSED_PARAMETER")
         isSyncing: Long,
         notes: String,
+        pairedEnMangaId: Long?,
     ): Manga = Manga(
         id = id,
         source = source,
@@ -64,6 +65,7 @@ object MangaMapper {
         favoriteModifiedAt = favoriteModifiedAt,
         version = version,
         notes = notes,
+        pairedEnMangaId = pairedEnMangaId,
     )
 
     fun mapLibraryManga(
@@ -95,6 +97,7 @@ object MangaMapper {
         version: Long,
         isSyncing: Long,
         notes: String,
+        pairedEnMangaId: Long?,
         totalCount: Long,
         readCount: Double,
         latestUpload: Long,
@@ -135,6 +138,7 @@ object MangaMapper {
             version,
             isSyncing,
             notes,
+            pairedEnMangaId,
         ),
         categories = categories.split(",").map { it.toLong() },
         totalChapters = totalCount,
@@ -178,6 +182,7 @@ object MangaMapper {
         version: Long,
         isSyncing: Long,
         notes: String,
+        pairedEnMangaId: Long?,
         totalCount: Long,
     ): MangaWithChapterCount = MangaWithChapterCount(
         manga = mapManga(
@@ -209,6 +214,7 @@ object MangaMapper {
             version,
             isSyncing,
             notes,
+            pairedEnMangaId,
         ),
         chapterCount = totalCount,
     )

@@ -59,6 +59,7 @@ fun MangaToolbar(
     onClickRecommend: (() -> Unit)?,
     onClickMerge: (() -> Unit)?,
     onClickMergedSettings: (() -> Unit)?,
+    onClickPairEnVolume: (() -> Unit)?,
     // SY <--
 
     // For action mode
@@ -196,6 +197,14 @@ fun MangaToolbar(
                             AppBar.OverflowAction(
                                 title = stringResource(SYMR.strings.merge),
                                 onClick = onClickMerge,
+                            ),
+                        )
+                    }
+                    if (onClickPairEnVolume != null) {
+                        add(
+                            AppBar.OverflowAction(
+                                title = stringResource(MR.strings.pair_en_volume),
+                                onClick = onClickPairEnVolume,
                             ),
                         )
                     }

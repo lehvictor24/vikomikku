@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Komikku</string>
+    <string name="app_name" translatable="false">Vikomikku</string>
 
     <!-- Generic strings -->
     <string name="on">On</string>
@@ -149,6 +149,9 @@
     <string name="action_move_to_bottom_all_for_series">Move series to bottom</string>
     <string name="action_notes">Notes</string>
     <string name="action_edit_notes">Edit notes</string>
+    <string name="pair_en_volume">Pair EN volume…</string>
+    <string name="paired_en_volume">Paired EN: %s</string>
+    <string name="unpair_en_volume">Unpair EN volume</string>
     <string name="action_install">Install</string>
     <string name="action_share">Share</string>
     <string name="action_save">Save</string>

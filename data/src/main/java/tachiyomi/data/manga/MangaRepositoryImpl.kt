@@ -186,6 +186,7 @@ class MangaRepositoryImpl(
                     version = value.version,
                     isSyncing = 0,
                     notes = value.notes,
+                    pairedEnMangaId = value.pairedEnMangaId,
                 )
             }
         }

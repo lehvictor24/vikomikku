@@ -52,6 +52,7 @@ import eu.kanade.presentation.manga.DuplicateMangaDialog
 import eu.kanade.presentation.manga.EditCoverAction
 import eu.kanade.presentation.manga.MangaScreen
 import eu.kanade.presentation.manga.components.ClearMangaDialog
+import eu.kanade.presentation.manga.components.PairEnVolumeDialog
 import eu.kanade.presentation.manga.components.DeleteChaptersDialog
 import eu.kanade.presentation.manga.components.MangaCoverDialog
 import eu.kanade.presentation.manga.components.ScanlatorFilterDialog
@@ -390,6 +391,7 @@ class MangaScreen(
                 openPagePreview(context, successState.chapters.minByOrNull { it.chapter.sourceOrder }?.chapter, page)
             },
             onMorePreviewsClicked = { openMorePagePreviews(navigator, successState.manga) },
+            onClickPairEnVolume = { screenModel.showPairEnVolumeDialog() },
             // SY <--
             onEditNotesClicked = { navigator.push(MangaNotesScreen(manga = successState.manga)) },
             onMultiBookmarkClicked = screenModel::bookmarkChapters,
@@ -642,6 +644,14 @@ class MangaScreen(
                 )
             }
             // KMK <--
+
+            is MangaScreenModel.Dialog.PairEnVolume -> {
+                PairEnVolumeDialog(
+                    currentPairedId = successState.manga.pairedEnMangaId,
+                    onPair = { enId -> screenModel.pairWithEnManga(enId) },
+                    onDismiss = onDismissRequest,
+                )
+            }
         }
 
         if (showScanlatorsDialog) {

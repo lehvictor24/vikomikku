@@ -1,0 +1,25 @@
+CREATE TABLE IF NOT EXISTS sync_anchors (
+    manga_id INTEGER NOT NULL,
+    jp_page INTEGER NOT NULL,
+    en_page INTEGER NOT NULL,
+    PRIMARY KEY(manga_id, jp_page),
+    FOREIGN KEY(manga_id) REFERENCES mangas(_id) ON DELETE CASCADE
+);
+
+getAnchorsByMangaId:
+SELECT *
+FROM sync_anchors
+WHERE manga_id = :mangaId
+ORDER BY jp_page ASC;
+
+insertAnchor:
+INSERT OR REPLACE INTO sync_anchors(manga_id, jp_page, en_page)
+VALUES (:mangaId, :jpPage, :enPage);
+
+deleteAnchorsByMangaId:
+DELETE FROM sync_anchors
+WHERE manga_id = :mangaId;
+
+deleteAnchor:
+DELETE FROM sync_anchors
+WHERE manga_id = :mangaId AND jp_page = :jpPage;

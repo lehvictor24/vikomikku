@@ -31,8 +31,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -95,6 +100,8 @@ import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.Success
 import eu.kanade.tachiyomi.ui.reader.loader.HttpPageLoader
 import eu.kanade.tachiyomi.data.dictionary.JmdictService
 import eu.kanade.tachiyomi.ui.reader.model.MokuroBlock
+import tachiyomi.domain.manga.interactor.GetSyncAnchors
+import tachiyomi.domain.manga.interactor.ResolveEnPage
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
@@ -185,6 +192,7 @@ class ReaderActivity : BaseActivity() {
 
     // ── Mokuro dictionary popup state ────────────────────────────────────────
     private val jmdictService = Injekt.get<JmdictService>()
+    private val getSyncAnchors = Injekt.get<GetSyncAnchors>()
     private val _dictionaryBlock = mutableStateOf<MokuroBlock?>(null)
     private val _dictionaryWord = mutableStateOf<String>("")
 
@@ -196,6 +204,22 @@ class ReaderActivity : BaseActivity() {
     private fun dismissDictionary() {
         _dictionaryBlock.value = null
     }
+
+    /** Opens the paired EN volume at the corresponding page via sync anchors. */
+    fun switchToEnVolume() {
+        val enMangaId = viewModel.manga?.pairedEnMangaId ?: return
+        val jpPage = viewModel.state.value.currentPage.coerceAtLeast(0)
+        lifecycleScope.launch {
+            val anchors = getSyncAnchors.await(viewModel.manga!!.id)
+            val enPage = ResolveEnPage.resolve(jpPage, anchors)
+            val enManga = viewModel.getMangaById(enMangaId) ?: return@launch
+            val enChapterId = viewModel.getFirstChapterId(enMangaId) ?: return@launch
+            startActivity(
+                newIntent(this@ReaderActivity, enManga.id, enChapterId, enPage),
+            )
+        }
+    }
+
     private var assistUrl: String? = null
 
     // SY -->
@@ -367,6 +391,19 @@ class ReaderActivity : BaseActivity() {
                 ContentOverlay(state = state)
 
                 AppBars(state = state)
+
+                // "Switch to EN" FAB — visible when menu is open and a paired EN volume exists
+                if (state.menuVisible && state.manga?.pairedEnMangaId != null) {
+                    ExtendedFloatingActionButton(
+                        onClick = { switchToEnVolume() },
+                        icon = { Icon(Icons.Outlined.Translate, contentDescription = null) },
+                        text = { Text("↕ EN") },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .navigationBarsPadding()
+                            .padding(end = 16.dp, bottom = 80.dp),
+                    )
+                }
             }
 
             // Mokuro dictionary popup
