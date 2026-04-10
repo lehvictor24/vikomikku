@@ -152,6 +152,11 @@
     <string name="pair_en_volume">Pair EN volume…</string>
     <string name="paired_en_volume">Paired EN: %s</string>
     <string name="unpair_en_volume">Unpair EN volume</string>
+    <string name="pref_category_mokuro">Mokuro / Japanese dictionary</string>
+    <string name="pref_jmdict_file">JMdict dictionary file</string>
+    <string name="pref_jmdict_file_summary">Tap to load a JMdict JSON for full word lookup (100k+ entries).</string>
+    <string name="pref_jmdict_loaded">%1$d entries loaded</string>
+    <string name="pref_jmdict_none">Built-in mini-dictionary active (20 words)</string>
     <string name="action_install">Install</string>
     <string name="action_share">Share</string>
     <string name="action_save">Save</string>

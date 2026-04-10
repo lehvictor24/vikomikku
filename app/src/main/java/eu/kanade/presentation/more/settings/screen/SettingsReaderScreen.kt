@@ -1,11 +1,15 @@
 package eu.kanade.presentation.more.settings.screen
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalView
 import eu.kanade.presentation.more.settings.Preference
+import eu.kanade.tachiyomi.data.dictionary.JmdictService
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderBottomButton
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
@@ -17,6 +21,7 @@ import eu.kanade.tachiyomi.util.system.hasDisplayCutout
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.coroutines.launch
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.kmk.KMR
 import tachiyomi.i18n.sy.SYMR
@@ -43,6 +48,7 @@ object SettingsReaderScreen : SearchableSettings {
         // SY <--
 
         return listOf(
+            getMokuroGroup(),
             Preference.PreferenceItem.ListPreference(
                 preference = readerPref.defaultReadingMode(),
                 entries = ReadingMode.entries.drop(1)
@@ -675,4 +681,32 @@ object SettingsReaderScreen : SearchableSettings {
         )
     }
     // SY <--
+
+    @Composable
+    private fun getMokuroGroup(): Preference.PreferenceGroup {
+        val jmdictService = remember { Injekt.get<JmdictService>() }
+        val scope = rememberCoroutineScope()
+        val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null) {
+                scope.launch {
+                    try { jmdictService.loadJmdict(uri.toString()) } catch (_: Exception) {}
+                }
+            }
+        }
+        val subtitle = if (jmdictService.isFullDictLoaded) {
+            stringResource(MR.strings.pref_jmdict_loaded, jmdictService.size)
+        } else {
+            stringResource(MR.strings.pref_jmdict_none)
+        }
+        return Preference.PreferenceGroup(
+            title = stringResource(MR.strings.pref_category_mokuro),
+            preferenceItems = persistentListOf(
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(MR.strings.pref_jmdict_file),
+                    subtitle = subtitle,
+                    onClick = { filePicker.launch("application/json") },
+                ),
+            ),
+        )
+    }
 }
