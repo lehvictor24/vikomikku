@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>墨読 · Mokuro Reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#07090f;--sur:#0d1117;--sur2:#141b27;--bdr:#1e2d42;
+  --acc:#4f8ef7;--acc2:#c084fc;--acc3:#34d399;--acc4:#f59e0b;
+  --txt:#e2eaf5;--dim:#6b7d99;--danger:#f97171;
+  --th:rgba(79,142,247,.18);--tb:rgba(79,142,247,.55);
+  --radius:10px;
+}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}
+.screen{display:none;flex-direction:column;height:100dvh;overflow:hidden;}
+.screen.active{display:flex;}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0;z-index:50;}
+.topbar-title{font-family:'Noto Serif JP',serif;font-size:13px;color:var(--txt);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;}
+.ibtn{background:var(--sur2);border:1px solid var(--bdr);color:var(--txt);border-radius:7px;padding:7px 10px;font-size:11px;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap;flex-shrink:0;-webkit-appearance:none;transition:background .1s,border-color .1s;}
+.ibtn:active,.ibtn.on{background:#1a2540;border-color:var(--acc);color:var(--acc);}
+.ibtn.bm-on{border-color:var(--acc3);color:var(--acc3);background:#0d2820;}
+.ibtn.en-on{border-color:var(--acc4);color:var(--acc4);background:#1f1500;}
+
+/* ── LIBRARY ── */
+#lib-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#lib-inner{max-width:600px;margin:0 auto;padding:16px 14px 80px;}
+#import-banner{margin-bottom:20px;}
+#import-banner h2{font-size:11px;font-weight:600;color:var(--dim);margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase;font-family:'DM Mono',monospace;}
+.import-row{display:flex;gap:8px;margin-bottom:8px;}
+.import-zone-wrap{flex:1;}
+.import-zone-wrap label{display:block;cursor:pointer;}
+.izone{border:1.5px dashed var(--bdr);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;color:var(--dim);font-size:12px;transition:border-color .15s,background .15s;min-height:48px;}
+label:active .izone,.izone.ok{border-color:#4f8ef788;background:#4f8ef710;}
+.izone.ok .iz-name{color:var(--acc);}
+.iz-icon{font-size:18px;flex-shrink:0;}
+.izone input[type=file]{display:none;}
+.add-btn{background:var(--acc);border:none;color:#fff;border-radius:8px;padding:0 16px;font-size:22px;cursor:pointer;flex-shrink:0;height:48px;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;}
+.add-btn:active{background:#6fa0ff;}
+.add-btn:disabled{opacity:.4;cursor:not-allowed;}
+#jmdict-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:10px 12px;background:var(--sur);border:1px solid var(--bdr);border-radius:8px;}
+#jmdict-row label{cursor:pointer;flex:1;}
+#jmdict-status{font-size:11px;font-family:'DM Mono',monospace;color:var(--dim);}
+#jmdict-status.loaded{color:var(--acc3);}
+#jmdict-input{display:none;}
+#import-hint{font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;line-height:1.8;padding:8px 10px;background:#0a0f1a;border-radius:6px;border:1px solid var(--bdr);margin-top:4px;}
+#import-err{display:none;margin-top:6px;padding:8px 12px;background:#2a0f0f;border:1px solid #5a1f1f;border-radius:6px;color:#ff9999;font-size:12px;font-family:'DM Mono',monospace;}
+#import-spin{display:none;font-size:12px;color:var(--dim);font-family:'DM Mono',monospace;padding:8px 0;text-align:center;}
+.lib-divider{font-size:10px;font-weight:600;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.lib-divider::after{content:'';flex:1;height:1px;background:var(--bdr);}
+#vol-grid{display:flex;flex-direction:column;gap:10px;}
+.vol-card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;overflow:visible;display:flex;align-items:stretch;cursor:pointer;transition:border-color .2s;position:relative;}
+.vol-card:active{border-color:var(--acc);}
+.vol-thumb{width:72px;flex-shrink:0;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:28px;border-right:1px solid var(--bdr);border-radius:12px 0 0 12px;overflow:hidden;}
+.vol-thumb img{width:72px;height:100%;object-fit:cover;display:block;}
+.vol-info{flex:1;padding:11px 14px;display:flex;flex-direction:column;gap:3px;min-width:0;padding-right:36px;}
+.vol-title{font-family:'Noto Serif JP',serif;font-size:14px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vol-vol{font-size:11px;color:var(--acc);font-family:'DM Mono',monospace;}
+.vol-meta{font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.vol-progress{height:3px;background:var(--bdr);border-radius:2px;margin-top:4px;overflow:hidden;}
+.vol-progress-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;}
+.vol-bm-badge{display:inline-flex;align-items:center;gap:3px;color:var(--acc3);font-size:10px;}
+.vol-en-badge{display:inline-flex;align-items:center;gap:3px;color:var(--acc4);font-size:10px;}
+.vol-del{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--dim);border-radius:5px;padding:4px 6px;font-size:14px;cursor:pointer;-webkit-appearance:none;line-height:1;}
+.vol-del:active{color:var(--danger);}
+#empty-lib{text-align:center;padding:40px 20px;color:var(--dim);font-size:13px;line-height:1.8;}
+#empty-lib .big{font-size:36px;display:block;margin-bottom:12px;}
+
+/* ── READER ── */
+#pagearea{flex:1;overflow:hidden;position:relative;}
+/* lang switcher: slide up/down between JP and EN */
+#lang-stack{width:100%;height:100%;display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.4,0,.2,1);}
+.lang-pane{width:100%;flex:0 0 100%;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#pagewrap,#pagewrap-en{max-width:640px;margin:0 auto;padding:12px;}
+#pnum-label,#pnum-label-en{text-align:center;padding:6px 0 2px;font-size:11px;font-family:'DM Mono',monospace;color:var(--dim);}
+.mpage{width:100%;position:relative;border-radius:6px;overflow:hidden;box-shadow:0 8px 40px #000b;border:1px solid var(--bdr);}
+.mpage img{width:100%;height:auto;display:block;}
+/* lang label badge */
+.lang-label{display:inline-block;font-size:10px;font-family:'DM Mono',monospace;padding:3px 10px;border-radius:20px;margin-bottom:6px;letter-spacing:.06em;}
+.lang-label.jp{background:#4f8ef722;border:1px solid var(--acc);color:var(--acc);}
+.lang-label.en{background:#f59e0b22;border:1px solid var(--acc4);color:var(--acc4);}
+/* EN pane no-content placeholder */
+#en-placeholder{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--dim);font-size:13px;text-align:center;padding:40px;}
+#en-placeholder .big{font-size:36px;}
+
+/* sync indicator strip */
+#sync-strip{display:none;background:var(--sur2);border-top:1px solid var(--bdr);flex-shrink:0;padding:6px 14px;font-size:10px;font-family:'DM Mono',monospace;display:flex;align-items:center;gap:8px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sync-dot.anchored{background:var(--acc3);}
+.sync-dot.interpolated{background:var(--acc4);}
+.sync-dot.unsynced{background:var(--danger);}
+#sync-strip button{margin-left:auto;font-size:10px;font-family:'DM Mono',monospace;background:none;border:1px solid var(--bdr);color:var(--dim);border-radius:5px;padding:3px 8px;cursor:pointer;}
+#sync-strip button:active{border-color:var(--acc);color:var(--acc);}
+
+/* overlay */
+.overlay-layer{position:absolute;inset:0;pointer-events:none;}
+.overlay-layer.active{pointer-events:all;}
+.tblock{position:absolute;cursor:default;user-select:none;}
+.tinner{display:inline-flex;flex-wrap:wrap;align-content:flex-start;width:100%;height:100%;font-family:'Noto Serif JP',serif;font-size:clamp(10px,2vw,17px);color:transparent;line-height:1.35;letter-spacing:.04em;transition:color .15s;}
+.tblock:hover .tinner,.tblock.touched .tinner{color:rgba(226,234,245,.93);}
+.tok{display:inline;}
+.tok.look{cursor:pointer;border-radius:3px;}
+.tok.look:active,.tok.look:hover{background:var(--th);outline:1px solid var(--tb);color:#fff !important;}
+.badge{position:absolute;font-size:10px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:20px;pointer-events:none;letter-spacing:.05em;z-index:10;}
+.bmock{top:8px;left:8px;background:#c084fc22;border:1px solid var(--acc2);color:var(--acc2);}
+.bocr{top:8px;right:8px;background:#4f8ef733;border:1px solid var(--acc);color:var(--acc);}
+
+#botnav{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--sur);border-top:1px solid var(--bdr);flex-shrink:0;gap:8px;}
+.navbtn{background:var(--sur2);border:1px solid var(--bdr);color:var(--txt);border-radius:8px;padding:11px 16px;font-size:13px;cursor:pointer;font-family:'Syne',sans-serif;min-width:72px;-webkit-appearance:none;}
+.navbtn:active:not(:disabled){background:#1a2540;border-color:var(--acc);}
+.navbtn:disabled{opacity:.3;cursor:not-allowed;}
+#dots{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center;max-width:160px;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--bdr);cursor:pointer;flex-shrink:0;transition:background .2s,transform .2s;}
+.dot.on{background:var(--acc);transform:scale(1.5);}
+.dot.bm{background:var(--acc3);}
+
+/* ── BOOKMARKS PANEL ── */
+#bm-panel{position:fixed;inset:0;z-index:300;background:#07090fcc;backdrop-filter:blur(8px);display:none;align-items:flex-end;}
+#bm-panel.show{display:flex;animation:slideup .2s ease;}
+@keyframes slideup{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+#bm-card{background:var(--sur);border:1px solid var(--bdr);border-radius:16px 16px 0 0;width:100%;max-height:70dvh;display:flex;flex-direction:column;}
+#bm-card-head{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--bdr);}
+#bm-card-head h3{font-size:14px;font-weight:700;flex:1;}
+#bm-close{background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px;}
+#bm-list{flex:1;overflow-y:auto;padding:10px 14px 20px;}
+.bm-empty{text-align:center;color:var(--dim);font-size:12px;padding:24px;font-family:'DM Mono',monospace;}
+.bm-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid transparent;margin-bottom:6px;}
+.bm-item:active{background:var(--sur2);border-color:var(--bdr);}
+.bm-thumb{width:44px;height:60px;background:var(--sur2);border-radius:4px;overflow:hidden;flex-shrink:0;border:1px solid var(--bdr);}
+.bm-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.bm-thumb-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.bm-info{flex:1;min-width:0;}
+.bm-page{font-size:14px;font-weight:700;color:var(--txt);}
+.bm-date{font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;margin-top:2px;}
+.bm-del{background:none;border:none;color:var(--dim);font-size:15px;cursor:pointer;padding:4px 6px;border-radius:4px;flex-shrink:0;}
+.bm-del:active{color:var(--danger);}
+#bm-add-btn{display:block;width:calc(100% - 28px);margin:0 14px 14px;padding:12px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;color:var(--acc3);font-size:13px;font-family:'Syne',sans-serif;cursor:pointer;-webkit-appearance:none;}
+#bm-add-btn:active{background:#0d2820;border-color:var(--acc3);}
+
+/* ── SYNC EDITOR ── */
+#sync-screen{background:var(--bg);}
+#sync-topbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0;}
+#sync-topbar h2{font-size:14px;font-weight:700;flex:1;}
+#sync-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px 80px;}
+
+/* anchor list */
+.anchor-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.anchor-row{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
+.anchor-row.is-zero{border-color:var(--acc3);background:#0d2820;}
+.anchor-pages{display:flex;align-items:center;gap:8px;flex:1;}
+.anchor-flag{font-size:10px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:4px;background:var(--sur2);border:1px solid var(--bdr);color:var(--dim);}
+.anchor-num{font-size:20px;font-weight:700;font-family:'DM Mono',monospace;color:var(--txt);min-width:32px;text-align:center;}
+.anchor-sep{font-size:14px;color:var(--dim);}
+.anchor-del{background:none;border:none;color:var(--dim);font-size:16px;cursor:pointer;padding:4px 6px;-webkit-appearance:none;}
+.anchor-del:active{color:var(--danger);}
+.anchor-status{font-size:10px;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:4px;}
+.anchor-status.anchored{background:#0d2820;color:var(--acc3);border:1px solid #1a4030;}
+.anchor-status.zero{background:#0d2820;color:var(--acc3);border:1px solid #1a4030;}
+
+/* Add anchor form */
+#add-anchor-card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:16px;margin-bottom:16px;}
+#add-anchor-card h3{font-size:12px;font-weight:600;color:var(--dim);margin-bottom:12px;text-transform:uppercase;font-family:'DM Mono',monospace;letter-spacing:.06em;}
+.anchor-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.anchor-input-group label{font-size:10px;font-family:'DM Mono',monospace;color:var(--dim);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;}
+.anchor-input-group{display:flex;flex-direction:column;}
+.page-input-row{display:flex;align-items:center;gap:6px;}
+.page-input-row input{flex:1;background:var(--sur2);border:1px solid var(--bdr);color:var(--txt);border-radius:7px;padding:9px 10px;font-size:16px;font-family:'DM Mono',monospace;text-align:center;-webkit-appearance:none;width:100%;}
+.page-input-row input:focus{outline:none;border-color:var(--acc);}
+.step-btn{background:var(--sur2);border:1px solid var(--bdr);color:var(--txt);border-radius:6px;padding:8px 12px;font-size:16px;cursor:pointer;-webkit-appearance:none;flex-shrink:0;}
+.step-btn:active{background:#1a2540;border-color:var(--acc);}
+.add-anchor-btn{width:100%;padding:11px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:13px;font-family:'Syne',sans-serif;cursor:pointer;-webkit-appearance:none;}
+.add-anchor-btn:active{background:#6fa0ff;}
+.add-anchor-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* preview strip */
+#sync-preview{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+#sync-preview-head{padding:10px 14px;border-bottom:1px solid var(--bdr);font-size:11px;font-family:'DM Mono',monospace;color:var(--dim);}
+.preview-pair{display:flex;gap:0;border-bottom:1px solid var(--bdr);}
+.preview-pair:last-child{border-bottom:none;}
+.preview-half{flex:1;padding:8px 12px;font-size:12px;font-family:'DM Mono',monospace;}
+.preview-half:first-child{border-right:1px solid var(--bdr);}
+.preview-half .ph-label{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+.preview-half .ph-page{font-size:15px;font-weight:700;color:var(--txt);}
+.preview-half .ph-status{font-size:9px;margin-top:2px;}
+.ph-status.anchored{color:var(--acc3);}
+.ph-status.interpolated{color:var(--acc4);}
+.ph-status.unsynced{color:var(--danger);}
+
+/* sync hint */
+#sync-hint{font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;line-height:1.7;padding:10px 12px;background:#0a0f1a;border-radius:8px;border:1px solid var(--bdr);}
+
+/* ── DICT POPUP ── */
+#popup{display:none;position:fixed;z-index:9999;width:300px;background:#0d1117ee;border:1px solid var(--bdr);border-radius:var(--radius);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 8px 40px #000b,0 0 0 1px #fff1 inset;overflow:hidden;}
+#popup.show{display:block;animation:pop .14s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes pop{from{opacity:0;transform:scale(.92) translateY(-6px)}to{opacity:1;transform:scale(1)}}
+.ph{display:flex;align-items:baseline;gap:8px;padding:13px 13px 8px;border-bottom:1px solid var(--bdr);flex-wrap:wrap;}
+.pw{font-family:'Noto Serif JP',serif;font-size:26px;font-weight:700;color:#fff;}
+.pr{font-family:'Noto Serif JP',serif;font-size:13px;color:var(--acc);}
+.ptag{font-size:10px;font-family:'DM Mono',monospace;background:#1a2540;color:#7aadff;padding:2px 6px;border-radius:4px;border:1px solid #2a3d5e;text-transform:uppercase;letter-spacing:.04em;}
+#pclose{margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:4px;line-height:1;}
+.pfreq{display:flex;align-items:center;gap:8px;padding:7px 13px;border-bottom:1px solid var(--bdr);}
+.fwrap{flex:1;height:4px;background:#141b27;border-radius:2px;overflow:hidden;}
+.fbar{display:block;height:100%;background:linear-gradient(90deg,#4f8ef7,#c084fc);border-radius:2px;}
+.flabel{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);white-space:nowrap;}
+.pcontext{padding:9px 13px 8px;border-bottom:1px solid var(--bdr);font-family:'Noto Serif JP',serif;font-size:15px;line-height:1.9;color:var(--dim);word-break:break-all;}
+.ctx-tok{display:inline;border-radius:3px;}
+.ctx-tok.ctx-look{cursor:pointer;color:var(--txt);}
+.ctx-tok.ctx-look:active{background:var(--th);}
+.ctx-tok.ctx-hit{color:#fff !important;background:rgba(79,142,247,.28);outline:1px solid rgba(79,142,247,.6);padding:0 1px;border-radius:3px;}
+.pmeanings{padding:10px 13px;max-height:150px;overflow-y:auto;}
+.mrow{margin-bottom:8px;}
+.postag{display:inline-block;font-size:10px;font-family:'DM Mono',monospace;background:#1e1640;color:#b39dfc;padding:2px 7px;border-radius:4px;margin-bottom:4px;border:1px solid #2d1f60;}
+.enlist{padding-left:16px;font-size:13px;line-height:1.6;}
+.enlist li{color:#c8d6ec;}
+.ptrans{padding:8px 13px 9px;border-bottom:1px solid var(--bdr);font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;line-height:1.7;min-height:32px;}
+.ptrans.loading{color:#3a4d66;font-style:italic;}
+.ptrans.loaded{color:#8ab4d4;}
+.ptrans.err{color:#6b4040;font-style:italic;}
+.pactions{display:flex;gap:8px;padding:9px 13px;border-top:1px solid var(--bdr);background:#080c14;}
+.abtn{flex:1;background:var(--sur2);border:1px solid var(--bdr);color:var(--dim);border-radius:6px;padding:8px 0;font-size:12px;font-family:'Syne',sans-serif;cursor:pointer;}
+.abtn:active{background:#1a2540;color:var(--txt);border-color:var(--acc);}
+
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a2540;border:1px solid var(--acc);color:var(--txt);font-size:12px;font-family:'DM Mono',monospace;padding:8px 16px;border-radius:20px;z-index:10000;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- ══ LIBRARY ══════════════════════════════════════════════════════════════ -->
+<div id="lib-screen" class="screen active">
+  <div class="topbar">
+    <span class="topbar-title">墨読</span>
+    <span id="lib-count" style="font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;flex-shrink:0;"></span>
+  </div>
+  <div id="lib-scroll">
+    <div id="lib-inner">
+      <div id="import-banner">
+        <h2>Add Volume</h2>
+        <div class="import-row">
+          <div class="import-zone-wrap" style="flex:1">
+            <label>
+              <input type="file" id="folder-input" webkitdirectory multiple accept="*/*">
+              <div class="izone" id="folder-zone">
+                <span class="iz-icon">🇯🇵</span>
+                <div style="min-width:0;flex:1">
+                  <div style="font-size:9px;color:var(--dim);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">JP · Required</div>
+                  <div class="iz-name" id="folder-name">Select JP folder</div>
+                </div>
+              </div>
+            </label>
+          </div>
+          <div class="import-zone-wrap" style="flex:1">
+            <label>
+              <input type="file" id="en-folder-input" webkitdirectory multiple accept="*/*">
+              <div class="izone" id="en-folder-zone">
+                <span class="iz-icon">🇬🇧</span>
+                <div style="min-width:0;flex:1">
+                  <div style="font-size:9px;color:var(--dim);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">EN · Optional</div>
+                  <div class="iz-name" id="en-folder-name">Select EN folder</div>
+                </div>
+              </div>
+            </label>
+          </div>
+          <button class="add-btn" id="add-btn" disabled>＋</button>
+        </div>
+        <div id="jmdict-row">
+          <span style="font-size:18px">📚</span>
+          <label style="flex:1">
+            <input type="file" id="jmdict-input" accept=".json">
+            <span id="jmdict-status">JMdict: mini-dictionary · tap to load full</span>
+          </label>
+        </div>
+        <div id="import-hint">JP folder needs .mokuro + images · EN folder needs images only · Swipe ↕ in reader to switch languages</div>
+        <div id="import-err"></div>
+        <div id="import-spin">Importing…</div>
+      </div>
+      <div class="lib-divider" id="lib-divider" style="display:none">Library</div>
+      <div id="vol-grid"></div>
+      <div id="empty-lib"><span class="big">本</span>Select a folder above to add your first volume.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ READER ═══════════════════════════════════════════════════════════════ -->
+<div id="reader-screen" class="screen">
+  <div class="topbar">
+    <button class="ibtn" id="back-btn">← 棚</button>
+    <div style="flex:1;min-width:0"><div class="topbar-title" id="reader-title" style="font-size:12px">—</div></div>
+    <button class="ibtn on" id="ocr-btn">文 ON</button>
+    <button class="ibtn" id="dir-btn">RTL</button>
+    <button class="ibtn" id="lang-btn" title="Switch language" style="display:none">EN</button>
+    <button class="ibtn" id="bm-btn" title="Bookmarks">🔖</button>
+  </div>
+
+  <div id="pagearea">
+    <!-- swipe hint — shown briefly when EN is paired -->
+    <div id="swipe-hint" style="display:none;position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:60;background:#1a2540cc;border:1px solid var(--acc);border-radius:20px;padding:6px 16px;font-size:11px;font-family:'DM Mono',monospace;color:var(--acc);pointer-events:none;white-space:nowrap;backdrop-filter:blur(8px);transition:opacity .4s;">↕ Swipe to switch JP / EN</div>
+    <!-- vertical stack: JP pane on top, EN pane below — transform slides between them -->
+    <div id="lang-stack">
+      <!-- JP pane -->
+      <div class="lang-pane" id="pane-jp">
+        <div id="pagewrap">
+          <div style="text-align:center;padding-bottom:4px"><span class="lang-label jp">JP</span></div>
+          <div style="position:relative" id="page-container">
+            <div class="badge bmock" id="badge-demo" style="display:none">demo</div>
+            <div class="badge bocr" id="badge-ocr">OCR · tap 漢</div>
+            <div class="mpage" id="mpage"></div>
+          </div>
+          <div id="pnum-label">— / —</div>
+        </div>
+      </div>
+      <!-- EN pane -->
+      <div class="lang-pane" id="pane-en">
+        <div id="pagewrap-en">
+          <div style="text-align:center;padding-bottom:4px"><span class="lang-label en">EN</span></div>
+          <div class="mpage" id="mpage-en"></div>
+          <div id="pnum-label-en">— / —</div>
+        </div>
+        <div id="en-placeholder">
+          <span class="big">EN</span>
+          No English volume paired.<br>
+          Go back to library → tap a volume → <strong>+ Pair EN</strong>.<br>
+          <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--dim);margin-top:8px;display:block;">Or import both JP + EN folders at once.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- sync indicator -->
+  <div id="sync-strip" style="display:none">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-label" style="color:var(--dim)"></span>
+    <button id="sync-edit-btn">Edit Sync</button>
+  </div>
+
+  <div id="botnav">
+    <button class="navbtn" id="prev-btn">← 前</button>
+    <div id="dots"></div>
+    <button class="navbtn" id="next-btn">次 →</button>
+  </div>
+</div>
+
+<!-- ══ SYNC EDITOR ═══════════════════════════════════════════════════════════ -->
+<div id="sync-screen" class="screen">
+  <div class="topbar" id="sync-topbar">
+    <button class="ibtn" id="sync-back-btn">← Back</button>
+    <h2 style="flex:1;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Page Sync Editor</h2>
+    <button class="ibtn on" id="sync-save-btn">Save</button>
+  </div>
+  <div id="sync-body">
+
+    <div id="sync-hint" style="margin-bottom:16px;">
+      Add anchor points where a JP page matches an EN page.<br>
+      Between anchors pages are interpolated proportionally.<br>
+      Pages outside anchors are marked unsynced.
+    </div>
+
+    <!-- Preview of current page pair -->
+    <div id="sync-preview" style="margin-bottom:16px;">
+      <div id="sync-preview-head">Current page pair preview</div>
+      <div id="sync-preview-rows"></div>
+    </div>
+
+    <!-- Anchor list -->
+    <div style="font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;font-family:'DM Mono',monospace;letter-spacing:.06em;margin-bottom:8px;">Anchors</div>
+    <div class="anchor-list" id="anchor-list"></div>
+
+    <!-- Add anchor form -->
+    <div id="add-anchor-card">
+      <h3>Add Anchor Point</h3>
+      <div class="anchor-inputs">
+        <div class="anchor-input-group">
+          <label>JP Page</label>
+          <div class="page-input-row">
+            <button class="step-btn" id="jp-minus">−</button>
+            <input type="number" id="jp-page-input" min="1" value="1">
+            <button class="step-btn" id="jp-plus">＋</button>
+          </div>
+        </div>
+        <div class="anchor-input-group">
+          <label>EN Page</label>
+          <div class="page-input-row">
+            <button class="step-btn" id="en-minus">−</button>
+            <input type="number" id="en-page-input" min="1" value="1">
+            <button class="step-btn" id="en-plus">＋</button>
+          </div>
+        </div>
+      </div>
+      <button class="add-anchor-btn" id="add-anchor-btn">＋ Add Anchor</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ BOOKMARKS PANEL ══════════════════════════════════════════════════════ -->
+<div id="bm-panel">
+  <div id="bm-card">
+    <div id="bm-card-head"><h3>🔖 Bookmarks</h3><button id="bm-close">✕</button></div>
+    <div id="bm-list"></div>
+    <button id="bm-add-btn">＋ Bookmark this page</button>
+  </div>
+</div>
+
+<!-- ══ DICT POPUP ═══════════════════════════════════════════════════════════ -->
+<div id="popup">
+  <div class="ph">
+    <span class="pw" id="p-word"></span>
+    <span class="pr" id="p-reading"></span>
+    <span class="ptag" id="p-common" style="display:none">common</span>
+    <button id="pclose">✕</button>
+  </div>
+  <div class="pfreq">
+    <span class="fwrap"><span class="fbar" id="p-fbar" style="width:0%"></span></span>
+    <span class="flabel" id="p-freq"></span>
+  </div>
+  <div class="pcontext" id="p-context" style="display:none"></div>
+  <div class="pmeanings" id="p-meanings"></div>
+  <div class="ptrans" id="p-trans" style="display:none"></div>
+  <div class="pactions">
+    <button class="abtn">+ Anki</button>
+    <button class="abtn">🔊 Audio</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ══ INDEXEDDB ════════════════════════════════════════════════════════════════
+const DB_NAME='mokuro', DB_VER=2;
+let db=null;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('volumes')) d.createObjectStore('volumes',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('meta'))    d.createObjectStore('meta',   {keyPath:'id'});
+    };
+    req.onsuccess=e=>res(e.target.result);
+    req.onerror  =e=>rej(e.target.error);
+  });
+}
+const dbPut=(store,obj)=>new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');const r=tx.objectStore(store).put(obj);r.onsuccess=()=>res();r.onerror=e=>rej(e.target.error);});
+const dbGet=(store,key)=>new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const r=tx.objectStore(store).get(key);r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error);});
+const dbGetAll=store=>new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const r=tx.objectStore(store).getAll();r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error);});
+const dbDelete=(store,key)=>new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');const r=tx.objectStore(store).delete(key);r.onsuccess=()=>res();r.onerror=e=>rej(e.target.error);});
+
+// ══ MINI DICT ════════════════════════════════════════════════════════════════
+const MINI={'魔法':{word:'魔法',reading:'まほう',meanings:[{pos:'Noun',en:['magic','sorcery']}],common:true,freq:1240},'少女':{word:'少女',reading:'しょうじょ',meanings:[{pos:'Noun',en:['girl','young lady']}],common:true,freq:2100},'戦う':{word:'戦う',reading:'たたかう',meanings:[{pos:'Verb(u)',en:['to fight']}],common:false,freq:890},'今日':{word:'今日',reading:'きょう',meanings:[{pos:'Noun',en:['today']}],common:true,freq:4500},'夢':{word:'夢',reading:'ゆめ',meanings:[{pos:'Noun',en:['dream']}],common:true,freq:2900},'世界':{word:'世界',reading:'せかい',meanings:[{pos:'Noun',en:['world']}],common:true,freq:5100},'希望':{word:'希望',reading:'きぼう',meanings:[{pos:'Noun',en:['hope']}],common:true,freq:1900},'力':{word:'力',reading:'ちから',meanings:[{pos:'Noun',en:['strength','power']}],common:true,freq:4100},'笑顔':{word:'笑顔',reading:'えがお',meanings:[{pos:'Noun',en:['smile']}],common:false,freq:780},'信じる':{word:'信じる',reading:'しんじる',meanings:[{pos:'Verb(ru)',en:['to believe']}],common:true,freq:1800},'輝く':{word:'輝く',reading:'かがやく',meanings:[{pos:'Verb(u)',en:['to shine']}],common:false,freq:540},'星':{word:'星',reading:'ほし',meanings:[{pos:'Noun',en:['star']}],common:true,freq:2200},'諦める':{word:'諦める',reading:'あきらめる',meanings:[{pos:'Verb(ru)',en:['to give up']}],common:false,freq:620},'待つ':{word:'待つ',reading:'まつ',meanings:[{pos:'Verb(u)',en:['to wait']}],common:true,freq:3200},'私':{word:'私',reading:'わたし',meanings:[{pos:'Pronoun',en:['I','me']}],common:true,freq:5000},'君':{word:'君',reading:'きみ',meanings:[{pos:'Pronoun',en:['you']}],common:true,freq:3800},'好き':{word:'好き',reading:'すき',meanings:[{pos:'Adj(na)',en:['liked']}],common:true,freq:4200},'嘘':{word:'嘘',reading:'うそ',meanings:[{pos:'Noun',en:['lie']}],common:true,freq:2600},'代償':{word:'代償',reading:'だいしょう',meanings:[{pos:'Noun',en:['price']}],common:false,freq:420},'笑う':{word:'笑う',reading:'わらう',meanings:[{pos:'Verb(u)',en:['to laugh']}],common:true,freq:2800}};
+
+// ══ STATE ════════════════════════════════════════════════════════════════════
+let dictIndex  = miniDictIndex();
+let library    = [];
+let activeManga= null;  // JP volume
+let activeEnManga=null; // EN volume (or null)
+let activeMeta = null;  // {id, lastPage, bookmarks, pairedEnId, syncAnchors:[{jp,en}]}
+let currentPage= 0;
+let currentLang= 'jp';  // 'jp' | 'en'
+let rtl=true, showOcr=true;
+
+// ══ SYNC MAP ═════════════════════════════════════════════════════════════════
+// anchors: [{jp:0-based, en:0-based}] sorted by jp
+// Returns the corresponding EN page for a given JP page, and sync status
+function resolveEnPage(jpPage, anchors){
+  if(!anchors||anchors.length===0) return{en:jpPage,status:'unsynced'};
+  const sorted=[...anchors].sort((a,b)=>a.jp-b.jp);
+  // exact match
+  const exact=sorted.find(a=>a.jp===jpPage);
+  if(exact) return{en:exact.en,status:'anchored'};
+  // find surrounding anchors
+  let lo=null,hi=null;
+  for(const a of sorted){ if(a.jp<jpPage) lo=a; else if(a.jp>jpPage&&!hi) hi=a; }
+  if(lo&&hi){
+    // interpolate
+    const t=(jpPage-lo.jp)/(hi.jp-lo.jp);
+    const en=Math.round(lo.en+t*(hi.en-lo.en));
+    return{en:Math.max(0,en),status:'interpolated'};
+  }
+  if(lo){
+    // extrapolate past last anchor — use same offset as last anchor
+    const offset=lo.en-lo.jp;
+    return{en:Math.max(0,jpPage+offset),status:'interpolated'};
+  }
+  if(hi){
+    // before first anchor — use first anchor's offset
+    const offset=hi.en-hi.jp;
+    return{en:Math.max(0,jpPage+offset),status:'interpolated'};
+  }
+  return{en:jpPage,status:'unsynced'};
+}
+
+// ══ DICT ═════════════════════════════════════════════════════════════════════
+function miniDictIndex(){const m=new Map();for(const[k,v] of Object.entries(MINI))m.set(k,v);return m;}
+function buildJmdictIndex(raw){
+  const idx=new Map(),words=raw.words||raw.entries||[];
+  for(const w of words){
+    const kf=(w.kanji||[]).map(k=>k.text),kn=(w.kana||[]).map(k=>k.text);
+    const reading=kn[0]||'',hw=kf[0]||reading;
+    const meanings=(w.sense||[]).map(s=>({pos:(s.partOfSpeech||[]).slice(0,2).join(', ')||'—',en:(s.gloss||[]).filter(g=>!g.lang||g.lang==='eng').map(g=>typeof g==='string'?g:g.text).filter(Boolean)})).filter(m=>m.en.length>0);
+    const isC=(w.kanji?.[0]?.tags||[]).some(t=>['ichi1','news1','spec1','gai1'].includes(t));
+    const entry={word:hw,reading,meanings,common:isC,freq:isC?3500:500};
+    for(const f of [...kf,...kn])if(f&&!idx.has(f))idx.set(f,entry);
+  }
+  return idx;
+}
+function tokenize(text){
+  const keys=[...dictIndex.keys()].sort((a,b)=>b.length-a.length);
+  const out=[];let i=0;
+  while(i<text.length){let hit=false;for(const k of keys){if(text.startsWith(k,i)){out.push({text:k,hasEntry:true});i+=k.length;hit=true;break;}}if(!hit){out.push({text:text[i],hasEntry:false});i++;}}
+  return out;
+}
+
+// ══ FILE UTILS ═══════════════════════════════════════════════════════════════
+const readText   =f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsText(f);});
+const readDataURL=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f);});
+
+// ══ PARSERS ══════════════════════════════════════════════════════════════════
+function parseMokuro(raw){
+  return{title:raw.title||raw.volume_uuid||'Untitled',volume:raw.volume||'',
+    pages:(raw.pages||[]).map(p=>({imgPath:p.img_path||p.img||null,imgSrc:null,
+      width:p.img_width??raw.img_width??844,height:p.img_height??raw.img_height??1200,
+      blocks:(p.blocks||[]).map(b=>({box:b.box,vertical:b.vertical??true,lines:b.lines||[]}))
+    }))};
+}
+
+// ══ PROCESS FOLDER ═══════════════════════════════════════════════════════════
+async function processFolder(files){
+  const mokuroFiles=files.filter(f=>f.name.endsWith('.mokuro')||(f.name.endsWith('.json')&&!f.name.toLowerCase().includes('jmdict')));
+  const imageFiles =files.filter(f=>f.type.startsWith('image/'));
+  if(!mokuroFiles.length) throw new Error('No .mokuro file found in folder.');
+  if(!imageFiles.length)  throw new Error('No image files found in folder.');
+  const manga=parseMokuro(JSON.parse(await readText(mokuroFiles[0])));
+  const imgMap=new Map();
+  for(const f of imageFiles){imgMap.set(f.name,f);imgMap.set(f.name.toLowerCase(),f);}
+  let anyMatched=false;
+  for(const page of manga.pages){
+    if(!page.imgPath)continue;
+    const base=page.imgPath.replace(/\\/g,'/').split('/').pop();
+    const file=imgMap.get(base)||imgMap.get(base.toLowerCase());
+    if(file){page.imgSrc=await readDataURL(file);anyMatched=true;}
+  }
+  if(!anyMatched){
+    const sorted=[...imageFiles].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+    for(let i=0;i<manga.pages.length&&i<sorted.length;i++) manga.pages[i].imgSrc=await readDataURL(sorted[i]);
+  }
+  const id=Date.now()+'_'+Math.random().toString(36).slice(2);
+  await dbPut('volumes',{id,title:manga.title,volume:manga.volume,pages:manga.pages});
+  await dbPut('meta',{id,lastPage:0,bookmarks:[],pairedEnId:null,syncAnchors:[]});
+  return{id,title:manga.title,volume:manga.volume,coverSrc:manga.pages[0]?.imgSrc||null,pageCount:manga.pages.length};
+}
+
+// ══ PROCESS EN FOLDER (images only — no .mokuro needed) ══════════════════════
+async function processEnFolder(files){
+  const imageFiles=files.filter(f=>f.type.startsWith('image/'));
+  if(!imageFiles.length) throw new Error('No image files found in EN folder.');
+  const sorted=[...imageFiles].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+  const folderName=files[0]?.webkitRelativePath?.split('/')[0]||'EN Volume';
+  const pages=[];
+  for(const f of sorted){
+    const src=await readDataURL(f);
+    pages.push({imgPath:f.name,imgSrc:src,width:844,height:1200,blocks:[]});
+  }
+  const id='en_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+  await dbPut('volumes',{id,title:folderName,volume:'(EN)',pages});
+  await dbPut('meta',{id,lastPage:0,bookmarks:[],pairedEnId:null,syncAnchors:[]});
+  return{id,title:folderName,volume:'(EN)',coverSrc:pages[0]?.imgSrc||null,pageCount:pages.length};
+}
+
+
+async function loadLibrary(){
+  const vols=await dbGetAll('volumes');
+  const metas=await dbGetAll('meta');
+  const metaMap=new Map(metas.map(m=>[m.id,m]));
+  library=vols.map(v=>({id:v.id,title:v.title,volume:v.volume,coverSrc:v.pages?.[0]?.imgSrc||null,pageCount:v.pages?.length||0,lastPage:metaMap.get(v.id)?.lastPage||0,bookmarks:metaMap.get(v.id)?.bookmarks||[],pairedEnId:metaMap.get(v.id)?.pairedEnId||null,syncAnchors:metaMap.get(v.id)?.syncAnchors||[]}));
+}
+
+function renderLibrary(){
+  const grid=document.getElementById('vol-grid');
+  const empty=document.getElementById('empty-lib');
+  const divider=document.getElementById('lib-divider');
+  const count=document.getElementById('lib-count');
+  grid.innerHTML='';
+  count.textContent=library.length?library.length+' vol'+(library.length!==1?'s':''):'';
+  divider.style.display=library.length?'':'none';
+  empty.style.display=library.length?'none':'';
+  library.forEach(vol=>{
+    const pct=vol.pageCount>0?Math.round((vol.lastPage/vol.pageCount)*100):0;
+    const hasBm=vol.bookmarks?.length>0;
+    const hasEn=!!vol.pairedEnId;
+    const enVol=hasEn?library.find(v=>v.id===vol.pairedEnId):null;
+    const card=document.createElement('div'); card.className='vol-card';
+    card.innerHTML=`
+      <div class="vol-thumb">${vol.coverSrc?`<img src="${esc(vol.coverSrc)}" alt="">`:'<span>📖</span>'}</div>
+      <div class="vol-info">
+        <div class="vol-title">${esc(vol.title)}</div>
+        ${vol.volume?`<div class="vol-vol">${esc(vol.volume)}</div>`:''}
+        <div class="vol-meta">
+          <span>p.${vol.lastPage+1} / ${vol.pageCount}</span>
+          ${hasBm?`<span class="vol-bm-badge">🔖 ${vol.bookmarks.length}</span>`:''}
+          ${hasEn?`<span class="vol-en-badge">EN ⇅</span>`:''}
+        </div>
+        <div class="vol-progress"><div class="vol-progress-fill" style="width:${pct}%"></div></div>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+          <button class="pair-en-btn" data-id="${vol.id}" style="font-size:10px;font-family:'DM Mono',monospace;background:var(--sur2);border:1px solid var(--bdr);color:var(--dim);border-radius:5px;padding:3px 8px;cursor:pointer;">
+            ${hasEn?`EN: ${esc(enVol?.title||'?')}`:'+ Pair EN'}
+          </button>
+          ${hasEn?`<button class="unpair-en-btn" data-id="${vol.id}" style="font-size:10px;font-family:'DM Mono',monospace;background:none;border:1px solid var(--bdr);color:var(--dim);border-radius:5px;padding:3px 8px;cursor:pointer;">✕ Unpair</button>`:''}
+        </div>
+      </div>
+      <button class="vol-del" data-id="${vol.id}">✕</button>
+    `;
+    card.addEventListener('click',e=>{
+      if(e.target.closest('.vol-del')||e.target.closest('.pair-en-btn')||e.target.closest('.unpair-en-btn'))return;
+      openVolume(vol.id);
+    });
+    card.querySelector('.vol-del').addEventListener('click',async e=>{
+      e.stopPropagation();
+      if(!confirm(`Remove "${vol.title}"?`))return;
+      await dbDelete('volumes',vol.id);await dbDelete('meta',vol.id);
+      library=library.filter(v=>v.id!==vol.id);renderLibrary();
+    });
+    card.querySelector('.pair-en-btn').addEventListener('click',async e=>{
+      e.stopPropagation();
+      showPairPicker(vol.id);
+    });
+    card.querySelector('.unpair-en-btn')?.addEventListener('click',async e=>{
+      e.stopPropagation();
+      const meta=await dbGet('meta',vol.id);
+      meta.pairedEnId=null;meta.syncAnchors=[];
+      await dbPut('meta',meta);
+      const entry=library.find(v=>v.id===vol.id);
+      if(entry){entry.pairedEnId=null;entry.syncAnchors=[];}
+      renderLibrary();toast('EN volume unpaired');
+    });
+    grid.appendChild(card);
+  });
+}
+
+// ── Pair picker ─────────────────────────────────────────────────────────────
+function showPairPicker(jpId){
+  const others=library.filter(v=>v.id!==jpId);
+  if(!others.length){toast('Import the EN volume first, then pair it.');return;}
+  const choice=others.length===1?others[0]:null;
+  if(choice){pairEnVolume(jpId,choice.id);return;}
+  // show simple list
+  const names=others.map((v,i)=>`${i+1}. ${v.title}${v.volume?' '+v.volume:''}`).join('\n');
+  const idx=prompt(`Pick EN volume number:\n${names}`);
+  const n=parseInt(idx);
+  if(isNaN(n)||n<1||n>others.length){return;}
+  pairEnVolume(jpId,others[n-1].id);
+}
+async function pairEnVolume(jpId,enId){
+  const meta=await dbGet('meta',jpId);
+  meta.pairedEnId=enId;
+  if(!meta.syncAnchors)meta.syncAnchors=[];
+  await dbPut('meta',meta);
+  const entry=library.find(v=>v.id===jpId);
+  if(entry){entry.pairedEnId=enId;}
+  renderLibrary();toast('EN volume paired ✓');
+}
+
+// ══ OPEN VOLUME ══════════════════════════════════════════════════════════════
+async function openVolume(id){
+  const [volData,meta]=await Promise.all([dbGet('volumes',id),dbGet('meta',id)]);
+  if(!volData){toast('Volume not found');return;}
+  activeManga=volData;
+  activeMeta=meta||{id,lastPage:0,bookmarks:[],pairedEnId:null,syncAnchors:[]};
+  currentPage=activeMeta.lastPage||0;
+  currentLang='jp';
+
+  // load EN if paired
+  activeEnManga=null;
+  if(activeMeta.pairedEnId){
+    activeEnManga=await dbGet('volumes',activeMeta.pairedEnId);
+  }
+
+  showScreen('reader');
+  document.getElementById('reader-title').textContent=volData.title+(volData.volume?' · '+volData.volume:'');
+  document.getElementById('badge-demo').style.display='none';
+  updateLangBtn();
+  setLangPane('jp',false);
+  renderPage();
+  updateBmBtn();
+  // show swipe hint briefly if EN is paired
+  if(activeEnManga){
+    const hint=document.getElementById('swipe-hint');
+    hint.style.display='block';hint.style.opacity='1';
+    setTimeout(()=>{hint.style.opacity='0';setTimeout(()=>{hint.style.display='none';},400);},2600);
+  }
+}
+
+// ══ LANGUAGE SWITCHING ═══════════════════════════════════════════════════════
+function updateLangBtn(){
+  const btn=document.getElementById('lang-btn');
+  const strip=document.getElementById('sync-strip');
+  if(activeEnManga){
+    btn.style.display='';
+    btn.textContent=currentLang==='jp'?'↕ EN':'↕ JP';
+    btn.className=currentLang==='en'?'ibtn en-on':'ibtn';
+    strip.style.display='flex';
+    updateSyncStrip();
+  }else{
+    btn.style.display='none';
+    strip.style.display='none';
+  }
+}
+
+function updateSyncStrip(){
+  if(!activeEnManga)return;
+  const anchors=activeMeta?.syncAnchors||[];
+  const {en,status}=resolveEnPage(currentPage,anchors);
+  const dot=document.getElementById('sync-dot');
+  const label=document.getElementById('sync-label');
+  dot.className='sync-dot '+status;
+  const enTotal=activeEnManga?.pages?.length||0;
+  const enSafe=Math.min(en,enTotal-1);
+  label.textContent=`JP p.${currentPage+1} ↔ EN p.${enSafe+1} · ${status}`;
+}
+
+function setLangPane(lang, animate=true){
+  currentLang=lang;
+  const stack=document.getElementById('lang-stack');
+  stack.style.transition=animate?'transform .3s cubic-bezier(.4,0,.2,1)':'none';
+  stack.style.transform=lang==='jp'?'translateY(0)':'translateY(-100%)';
+  updateLangBtn();
+  if(lang==='en') renderEnPage();
+}
+
+document.getElementById('lang-btn').addEventListener('click',()=>{
+  setLangPane(currentLang==='jp'?'en':'jp');
+});
+
+// ══ EN PAGE RENDER ═══════════════════════════════════════════════════════════
+function renderEnPage(){
+  const placeholder=document.getElementById('en-placeholder');
+  const mpEl=document.getElementById('mpage-en');
+  const pnumEl=document.getElementById('pnum-label-en');
+
+  if(!activeEnManga){
+    placeholder.style.display='flex'; mpEl.style.display='none'; pnumEl.textContent='';
+    return;
+  }
+  placeholder.style.display='none'; mpEl.style.display='';
+
+  const anchors=activeMeta?.syncAnchors||[];
+  const {en}=resolveEnPage(currentPage,anchors);
+  const enTotal=activeEnManga.pages.length;
+  const enPage=Math.max(0,Math.min(en,enTotal-1));
+  const p=activeEnManga.pages[enPage];
+
+  mpEl.innerHTML='';
+  if(p.imgSrc){
+    const img=document.createElement('img');img.alt='EN Page '+(enPage+1);img.src=p.imgSrc;
+    mpEl.appendChild(img);
+  }else{
+    mpEl.appendChild(buildPlaceholderSVG(p.width,p.height,enPage+1000));
+  }
+  pnumEl.textContent=`EN p.${enPage+1} / ${enTotal}`;
+}
+
+// ══ SAVE PROGRESS ════════════════════════════════════════════════════════════
+async function saveProgress(){
+  if(!activeMeta)return;
+  activeMeta.lastPage=currentPage;
+  await dbPut('meta',activeMeta);
+  const entry=library.find(v=>v.id===activeMeta.id);
+  if(entry)entry.lastPage=currentPage;
+}
+
+// ══ BOOKMARKS ════════════════════════════════════════════════════════════════
+function updateBmBtn(){
+  const btn=document.getElementById('bm-btn');
+  btn.className=activeMeta?.bookmarks?.some(b=>b.page===currentPage)?'ibtn bm-on':'ibtn';
+}
+async function addBookmark(){
+  if(!activeMeta)return;
+  if(activeMeta.bookmarks.some(b=>b.page===currentPage)){toast('Already bookmarked');return;}
+  activeMeta.bookmarks.push({page:currentPage,date:new Date().toLocaleDateString('ja-JP'),thumbSrc:activeManga.pages[currentPage]?.imgSrc||null});
+  activeMeta.bookmarks.sort((a,b)=>a.page-b.page);
+  await dbPut('meta',activeMeta);
+  const e=library.find(v=>v.id===activeMeta.id);if(e)e.bookmarks=[...activeMeta.bookmarks];
+  updateBmBtn();renderDots();toast('Bookmark added 🔖');
+}
+async function removeBookmark(page){
+  if(!activeMeta)return;
+  activeMeta.bookmarks=activeMeta.bookmarks.filter(b=>b.page!==page);
+  await dbPut('meta',activeMeta);
+  const e=library.find(v=>v.id===activeMeta.id);if(e)e.bookmarks=[...activeMeta.bookmarks];
+  updateBmBtn();renderDots();renderBmPanel();
+}
+function renderBmPanel(){
+  const list=document.getElementById('bm-list');list.innerHTML='';
+  const bms=activeMeta?.bookmarks||[];
+  if(!bms.length){list.innerHTML='<div class="bm-empty">No bookmarks yet.</div>';return;}
+  bms.forEach(bm=>{
+    const item=document.createElement('div');item.className='bm-item';
+    item.innerHTML=`<div class="bm-thumb">${bm.thumbSrc?`<img src="${esc(bm.thumbSrc)}" alt="">`:'<div class="bm-thumb-ph">📄</div>'}</div><div class="bm-info"><div class="bm-page">Page ${bm.page+1}</div><div class="bm-date">${bm.date||''}</div></div><button class="bm-del" data-page="${bm.page}">✕</button>`;
+    item.addEventListener('click',e=>{if(e.target.closest('.bm-del'))return;currentPage=bm.page;hideBmPanel();renderPage();saveProgress();updateBmBtn();});
+    item.querySelector('.bm-del').addEventListener('click',e=>{e.stopPropagation();removeBookmark(bm.page);});
+    list.appendChild(item);
+  });
+}
+function showBmPanel(){renderBmPanel();document.getElementById('bm-panel').className='show';}
+function hideBmPanel(){document.getElementById('bm-panel').className='';}
+document.getElementById('bm-btn').addEventListener('click',showBmPanel);
+document.getElementById('bm-close').addEventListener('click',hideBmPanel);
+document.getElementById('bm-panel').addEventListener('click',e=>{if(e.target===document.getElementById('bm-panel'))hideBmPanel();});
+document.getElementById('bm-add-btn').addEventListener('click',addBookmark);
+
+// ══ SCREEN SWITCHING ═════════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id+'-screen').classList.add('active');
+}
+document.getElementById('back-btn').addEventListener('click',()=>{hidePopup();hideBmPanel();showScreen('lib');renderLibrary();});
+
+// ══ RENDER JP PAGE ═══════════════════════════════════════════════════════════
+function renderPage(){
+  if(!activeManga)return;
+  const p=activeManga.pages[currentPage];
+  const mpEl=document.getElementById('mpage');
+  mpEl.innerHTML='';
+  if(p.imgSrc){
+    const img=document.createElement('img');img.alt='Page '+(currentPage+1);
+    img.onload=()=>scaleBlocks(p);img.src=p.imgSrc;
+    mpEl.style.height='';mpEl.appendChild(img);
+  }else{
+    const svg=buildPlaceholderSVG(p.width,p.height,currentPage);
+    mpEl.style.height=(p.height/p.width*(mpEl.clientWidth||300))+'px';
+    mpEl.appendChild(svg);
+  }
+  const ov=document.createElement('div');
+  ov.className='overlay-layer'+(showOcr?' active':'');ov.id='overlay';
+  p.blocks.forEach(block=>{
+    const div=document.createElement('div');div.className='tblock';
+    div.style.writingMode=block.vertical?'vertical-rl':'horizontal-tb';
+    const inner=document.createElement('div');inner.className='tinner';
+    const text=block.lines.join('');
+    tokenize(text).forEach(tok=>{
+      const span=document.createElement('span');
+      span.className='tok'+(tok.hasEntry?' look':'');span.textContent=tok.text;
+      if(tok.hasEntry){
+        span.addEventListener('click',e=>{e.stopPropagation();const entry=dictIndex.get(tok.text);if(entry){const r=span.getBoundingClientRect();showPopup(entry,r.left,r.bottom,text,tok.text);}});
+        span.addEventListener('touchstart',()=>div.classList.add('touched'),{passive:true});
+        span.addEventListener('touchend',()=>setTimeout(()=>div.classList.remove('touched'),400),{passive:true});
+      }
+      inner.appendChild(span);
+    });
+    div.appendChild(inner);ov.appendChild(div);
+    block._el=div;block._box=block.box;
+  });
+  mpEl.appendChild(ov);
+  if(!p.imgSrc)scaleBlocks(p);
+  document.getElementById('pnum-label').textContent=(currentPage+1)+' / '+activeManga.pages.length;
+  renderDots();updateNav();updateBmBtn();
+  if(currentLang==='en')renderEnPage();
+  if(activeEnManga)updateSyncStrip();
+}
+
+function renderDots(){
+  const dotsEl=document.getElementById('dots');dotsEl.innerHTML='';
+  const total=activeManga?.pages.length||0;
+  const bmPages=new Set((activeMeta?.bookmarks||[]).map(b=>b.page));
+  Array.from({length:Math.min(total,13)}).forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='dot'+(i===currentPage?' on':bmPages.has(i)?' bm':'');
+    d.addEventListener('click',()=>{currentPage=i;hidePopup();renderPage();saveProgress();});
+    dotsEl.appendChild(d);
+  });
+  if(total>13){const s=document.createElement('span');s.style.cssText='font-size:10px;font-family:"DM Mono",monospace;color:var(--dim)';s.textContent='…'+total;dotsEl.appendChild(s);}
+}
+
+function scaleBlocks(p){
+  const mpEl=document.getElementById('mpage');
+  const w=mpEl.clientWidth||1,scale=w/p.width;
+  p.blocks.forEach(b=>{
+    if(!b._el)return;
+    const[x1,y1,x2,y2]=b._box;
+    b._el.style.left=(x1*scale)+'px';b._el.style.top=(y1*scale)+'px';
+    b._el.style.width=((x2-x1)*scale)+'px';b._el.style.height=((y2-y1)*scale)+'px';
+    b._el.querySelector('.tinner').style.fontSize=`clamp(10px,${scale*16}px,17px)`;
+  });
+}
+window.addEventListener('resize',()=>{if(activeManga)scaleBlocks(activeManga.pages[currentPage]);});
+
+function updateNav(){
+  const total=activeManga?.pages.length||1;
+  const atStart=rtl?currentPage>=total-1:currentPage<=0;
+  const atEnd  =rtl?currentPage<=0:currentPage>=total-1;
+  document.getElementById('prev-btn').disabled=atStart;
+  document.getElementById('next-btn').disabled=atEnd;
+  document.getElementById('prev-btn').textContent=rtl?'次 →':'← 前';
+  document.getElementById('next-btn').textContent=rtl?'← 前':'次 →';
+}
+
+// ══ NAV ══════════════════════════════════════════════════════════════════════
+document.getElementById('prev-btn').addEventListener('click',()=>{
+  if(!activeManga)return;
+  const total=activeManga.pages.length;
+  currentPage=rtl?Math.min(total-1,currentPage+1):Math.max(0,currentPage-1);
+  hidePopup();renderPage();saveProgress();
+});
+document.getElementById('next-btn').addEventListener('click',()=>{
+  if(!activeManga)return;
+  const total=activeManga.pages.length;
+  currentPage=rtl?Math.max(0,currentPage-1):Math.min(total-1,currentPage+1);
+  hidePopup();renderPage();saveProgress();
+});
+
+// touch handling: left/right = page turn, up/down = language switch
+let tx0=null,ty0=null;
+document.getElementById('pagearea').addEventListener('touchstart',e=>{tx0=e.touches[0].clientX;ty0=e.touches[0].clientY;},{passive:true});
+document.getElementById('pagearea').addEventListener('touchend',e=>{
+  if(tx0===null)return;
+  const dx=e.changedTouches[0].clientX-tx0;
+  const dy=e.changedTouches[0].clientY-ty0;
+  tx0=null;ty0=null;
+  if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>60&&activeEnManga){
+    // vertical swipe → switch language
+    setLangPane(dy<0?'en':'jp');
+    return;
+  }
+  if(Math.abs(dx)<50)return;
+  if(dx>0)document.getElementById('prev-btn').click();
+  else    document.getElementById('next-btn').click();
+});
+document.getElementById('pagearea').addEventListener('click',hidePopup);
+
+document.getElementById('ocr-btn').addEventListener('click',()=>{
+  showOcr=!showOcr;
+  const btn=document.getElementById('ocr-btn');
+  btn.textContent=showOcr?'文 ON':'文 OFF';btn.className='ibtn'+(showOcr?' on':'');
+  const ov=document.getElementById('overlay');
+  if(ov)ov.className='overlay-layer'+(showOcr?' active':'');
+  document.getElementById('badge-ocr').style.display=showOcr?'':'none';
+});
+document.getElementById('dir-btn').addEventListener('click',()=>{rtl=!rtl;document.getElementById('dir-btn').textContent=rtl?'RTL':'LTR';updateNav();});
+
+// ══ SYNC EDITOR ══════════════════════════════════════════════════════════════
+let editingAnchors=[];  // working copy while in editor
+
+document.getElementById('sync-edit-btn').addEventListener('click',()=>openSyncEditor());
+document.getElementById('sync-back-btn').addEventListener('click',()=>{showScreen('reader');});
+document.getElementById('sync-save-btn').addEventListener('click',async()=>{
+  editingAnchors.sort((a,b)=>a.jp-b.jp);
+  activeMeta.syncAnchors=editingAnchors;
+  await dbPut('meta',activeMeta);
+  const entry=library.find(v=>v.id===activeMeta.id);
+  if(entry)entry.syncAnchors=[...editingAnchors];
+  showScreen('reader');updateSyncStrip();toast('Sync saved ✓');
+});
+
+// step buttons
+document.getElementById('jp-minus').addEventListener('click',()=>stepInput('jp-page-input',-1));
+document.getElementById('jp-plus' ).addEventListener('click',()=>stepInput('jp-page-input', 1));
+document.getElementById('en-minus').addEventListener('click',()=>stepInput('en-page-input',-1));
+document.getElementById('en-plus' ).addEventListener('click',()=>stepInput('en-page-input', 1));
+function stepInput(id,d){const el=document.getElementById(id);el.value=Math.max(1,(parseInt(el.value)||1)+d);}
+
+document.getElementById('add-anchor-btn').addEventListener('click',()=>{
+  const jpRaw=parseInt(document.getElementById('jp-page-input').value)||1;
+  const enRaw=parseInt(document.getElementById('en-page-input').value)||1;
+  const jp=jpRaw-1, en=enRaw-1; // convert to 0-based
+  if(editingAnchors.some(a=>a.jp===jp)){toast('JP page already has an anchor');return;}
+  editingAnchors.push({jp,en});
+  editingAnchors.sort((a,b)=>a.jp-b.jp);
+  renderSyncEditor();
+});
+
+function openSyncEditor(){
+  if(!activeManga||!activeEnManga){toast('Pair an EN volume first');return;}
+  editingAnchors=[...(activeMeta?.syncAnchors||[])];
+  // pre-fill inputs with current page
+  document.getElementById('jp-page-input').value=currentPage+1;
+  const {en}=resolveEnPage(currentPage,editingAnchors);
+  document.getElementById('en-page-input').value=Math.min(en+1,activeEnManga.pages.length);
+  renderSyncEditor();
+  showScreen('sync');
+}
+
+function renderSyncEditor(){
+  // Anchor list
+  const list=document.getElementById('anchor-list');
+  list.innerHTML='';
+  if(!editingAnchors.length){
+    list.innerHTML='<div style="font-size:12px;color:var(--dim);font-family:\'DM Mono\',monospace;padding:12px 0;">No anchors yet. Add one below.</div>';
+  }
+  editingAnchors.forEach((a,i)=>{
+    const row=document.createElement('div');row.className='anchor-row'+(i===0?' is-zero':'');
+    row.innerHTML=`
+      <div class="anchor-pages">
+        <span class="anchor-flag">JP</span>
+        <span class="anchor-num">${a.jp+1}</span>
+        <span class="anchor-sep">↔</span>
+        <span class="anchor-flag">EN</span>
+        <span class="anchor-num">${a.en+1}</span>
+      </div>
+      <span class="anchor-status anchored">anchored</span>
+      <button class="anchor-del" data-idx="${i}">✕</button>
+    `;
+    row.querySelector('.anchor-del').addEventListener('click',()=>{
+      editingAnchors.splice(i,1);renderSyncEditor();
+    });
+    list.appendChild(row);
+  });
+
+  // Preview rows — show current JP page + 4 neighbours
+  const previewRows=document.getElementById('sync-preview-rows');
+  previewRows.innerHTML='';
+  const total=activeManga.pages.length;
+  const enTotal=activeEnManga?.pages.length||0;
+  const range=[-2,-1,0,1,2].map(d=>currentPage+d).filter(p=>p>=0&&p<total);
+  range.forEach(jpIdx=>{
+    const {en,status}=resolveEnPage(jpIdx,editingAnchors);
+    const enSafe=Math.min(en,enTotal-1);
+    const pair=document.createElement('div');pair.className='preview-pair';
+    pair.style.background=jpIdx===currentPage?'#1a2540':'';
+    pair.innerHTML=`
+      <div class="preview-half">
+        <div class="ph-label">JP</div>
+        <div class="ph-page">${jpIdx===currentPage?'▶ ':''} ${jpIdx+1}</div>
+      </div>
+      <div class="preview-half">
+        <div class="ph-label">EN</div>
+        <div class="ph-page">${enSafe+1}</div>
+        <div class="ph-status ${status}">${status}</div>
+      </div>
+    `;
+    previewRows.appendChild(pair);
+  });
+}
+
+// ══ FOLDER IMPORT ════════════════════════════════════════════════════════════
+let pendingFiles=[], pendingEnFiles=[];
+
+document.getElementById('folder-input').addEventListener('change',function(){
+  pendingFiles=[...this.files];
+  const zone=document.getElementById('folder-zone');
+  const nameEl=document.getElementById('folder-name');
+  if(pendingFiles.length){
+    const fn=pendingFiles[0].webkitRelativePath?pendingFiles[0].webkitRelativePath.split('/')[0]:'Files selected';
+    nameEl.textContent=`${fn} (${pendingFiles.length})`;
+    zone.className='izone ok';document.getElementById('add-btn').disabled=false;
+  }else{
+    nameEl.textContent='Select JP folder';zone.className='izone';document.getElementById('add-btn').disabled=!pendingEnFiles.length;
+  }
+  document.getElementById('import-err').style.display='none';
+});
+
+document.getElementById('en-folder-input').addEventListener('change',function(){
+  pendingEnFiles=[...this.files];
+  const zone=document.getElementById('en-folder-zone');
+  const nameEl=document.getElementById('en-folder-name');
+  if(pendingEnFiles.length){
+    const fn=pendingEnFiles[0].webkitRelativePath?pendingEnFiles[0].webkitRelativePath.split('/')[0]:'Files selected';
+    nameEl.textContent=`${fn} (${pendingEnFiles.length})`;
+    zone.className='izone ok';
+  }else{
+    nameEl.textContent='Select EN folder';zone.className='izone';
+  }
+  document.getElementById('import-err').style.display='none';
+});
+
+document.getElementById('add-btn').addEventListener('click',async()=>{
+  if(!pendingFiles.length)return;
+  const err=document.getElementById('import-err');
+  const spin=document.getElementById('import-spin');
+  const btn=document.getElementById('add-btn');
+  err.style.display='none';spin.style.display='block';btn.disabled=true;
+  try{
+    // Import JP volume
+    const jpEntry=await processFolder(pendingFiles);
+    library.push(jpEntry);
+
+    // Import EN volume if selected (images only — no .mokuro needed)
+    if(pendingEnFiles.length){
+      spin.textContent='Importing EN…';
+      const enEntry=await processEnFolder(pendingEnFiles);
+      library.push(enEntry);
+      // Auto-pair
+      const meta=await dbGet('meta',jpEntry.id);
+      meta.pairedEnId=enEntry.id;
+      await dbPut('meta',meta);
+      jpEntry.pairedEnId=enEntry.id;
+      toast('JP + EN imported and paired ✓');
+    }else{
+      toast('Volume added ✓');
+    }
+
+    renderLibrary();
+    // Reset pickers
+    pendingFiles=[];pendingEnFiles=[];
+    document.getElementById('folder-input').value='';
+    document.getElementById('en-folder-input').value='';
+    document.getElementById('folder-name').textContent='Select JP folder';
+    document.getElementById('en-folder-name').textContent='Select EN folder';
+    document.getElementById('folder-zone').className='izone';
+    document.getElementById('en-folder-zone').className='izone';
+  }catch(e){err.textContent='Error: '+(e.message||String(e));err.style.display='block';btn.disabled=false;}
+  finally{spin.style.display='none';btn.disabled=!pendingFiles.length;spin.textContent='Importing…';}
+});
+document.getElementById('jmdict-input').addEventListener('change',async function(){
+  if(!this.files[0])return;
+  const status=document.getElementById('jmdict-status');
+  status.textContent='Loading JMdict…';status.className='';
+  try{
+    const raw=JSON.parse(await readText(this.files[0]));
+    dictIndex=buildJmdictIndex(raw);
+    status.textContent=`JMdict loaded · ${dictIndex.size.toLocaleString()} entries`;
+    status.className='loaded';
+  }catch(e){status.textContent='Error: '+e.message;dictIndex=miniDictIndex();}
+});
+
+// ══ DICT POPUP ═══════════════════════════════════════════════════════════════
+const popup=document.getElementById('popup');
+function showPopup(entry,x,y,contextText,word){
+  document.getElementById('p-word').textContent=entry.word;
+  document.getElementById('p-reading').textContent=`【${entry.reading}】`;
+  document.getElementById('p-common').style.display=entry.common?'':'none';
+  document.getElementById('p-fbar').style.width=Math.min(100,(entry.freq/5000)*100)+'%';
+  document.getElementById('p-freq').textContent='freq '+entry.freq;
+  const ctxEl=document.getElementById('p-context');
+  if(contextText){
+    ctxEl.style.display='';ctxEl.innerHTML='';
+    tokenize(contextText).forEach(tok=>{
+      const span=document.createElement('span');
+      const isHit=(tok.text===word);
+      span.className='ctx-tok'+(tok.hasEntry?' ctx-look':'')+(isHit?' ctx-hit':'');
+      span.textContent=tok.text;
+      if(tok.hasEntry){
+        span.addEventListener('click',e=>{
+          e.stopPropagation();
+          const en=dictIndex.get(tok.text);
+          if(en){ctxEl.querySelectorAll('.ctx-hit').forEach(s=>s.classList.remove('ctx-hit'));span.classList.add('ctx-hit');updatePopupEntry(en);}
+        });
+      }
+      ctxEl.appendChild(span);
+    });
+    translateContext(contextText);
+  }else{ctxEl.style.display='none';document.getElementById('p-trans').style.display='none';}
+  const ml=document.getElementById('p-meanings');ml.innerHTML='';
+  (entry.meanings||[]).slice(0,3).forEach(m=>{
+    const row=document.createElement('div');row.className='mrow';
+    const pt=document.createElement('span');pt.className='postag';pt.textContent=m.pos;row.appendChild(pt);
+    const ol=document.createElement('ol');ol.className='enlist';
+    m.en.slice(0,4).forEach(e=>{const li=document.createElement('li');li.textContent=e;ol.appendChild(li);});
+    row.appendChild(ol);ml.appendChild(row);
+  });
+  popup.className='show';
+  const vw=window.innerWidth,vh=window.innerHeight;
+  let left=Math.max(8,Math.min(x,vw-308));let top=y+10;
+  if(top+380>vh)top=y-380;if(top<8)top=8;
+  popup.style.left=left+'px';popup.style.top=top+'px';
+}
+function updatePopupEntry(entry){
+  document.getElementById('p-word').textContent=entry.word;
+  document.getElementById('p-reading').textContent=`【${entry.reading}】`;
+  document.getElementById('p-common').style.display=entry.common?'':'none';
+  document.getElementById('p-fbar').style.width=Math.min(100,(entry.freq/5000)*100)+'%';
+  document.getElementById('p-freq').textContent='freq '+entry.freq;
+  const ml=document.getElementById('p-meanings');ml.innerHTML='';
+  (entry.meanings||[]).slice(0,3).forEach(m=>{
+    const row=document.createElement('div');row.className='mrow';
+    const pt=document.createElement('span');pt.className='postag';pt.textContent=m.pos;row.appendChild(pt);
+    const ol=document.createElement('ol');ol.className='enlist';
+    m.en.slice(0,4).forEach(e=>{const li=document.createElement('li');li.textContent=e;ol.appendChild(li);});
+    row.appendChild(ol);ml.appendChild(row);
+  });
+}
+function hidePopup(){popup.className='';}
+document.getElementById('pclose').addEventListener('click',hidePopup);
+document.addEventListener('pointerdown',e=>{if(!popup.contains(e.target))hidePopup();});
+
+// ══ TRANSLATION (MyMemory) ════════════════════════════════════════════════════
+let lastTransCtx='';
+async function translateContext(text){
+  const el=document.getElementById('p-trans');
+  if(!text){el.style.display='none';return;}
+  if(text===lastTransCtx)return;
+  lastTransCtx=text;
+  el.style.display='';el.className='ptrans loading';el.textContent='translating…';
+  try{
+    const url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ja|en`;
+    const res=await fetch(url);
+    const data=await res.json();
+    const t=data?.responseData?.translatedText;
+    if(t&&!t.toLowerCase().includes('mymemory')){el.className='ptrans loaded';el.textContent=t;}
+    else throw new Error('empty');
+  }catch{el.className='ptrans err';el.textContent='translation unavailable';}
+}
+
+// ══ TOAST ════════════════════════════════════════════════════════════════════
+let toastTimer=null;
+function toast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.className='show';
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{el.className='';},2200);
+}
+
+// ══ HELPERS ══════════════════════════════════════════════════════════════════
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+// ══ PLACEHOLDER SVG ══════════════════════════════════════════════════════════
+function buildPlaceholderSVG(w,h,idx){
+  const ns='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(ns,'svg');
+  svg.setAttribute('width','100%');svg.setAttribute('height','100%');
+  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+  svg.style.display='block';
+  const mk=(tag,attrs)=>{const el=document.createElementNS(ns,tag);for(const[k,v] of Object.entries(attrs))el.setAttribute(k,v);return el;};
+  const defs=mk('defs',{});
+  const rg=mk('radialGradient',{id:`bg${idx}`,cx:'50%',cy:'40%',r:'60%'});
+  rg.appendChild(mk('stop',{offset:'0%','stop-color':'#0d1117'}));
+  rg.appendChild(mk('stop',{offset:'100%','stop-color':'#060810'}));
+  defs.appendChild(rg);
+  const pat=mk('pattern',{id:`gr${idx}`,width:'40',height:'40',patternUnits:'userSpaceOnUse'});
+  pat.appendChild(mk('path',{d:'M40 0L0 0 0 40',fill:'none',stroke:'#1a1a2e','stroke-width':'0.5'}));
+  defs.appendChild(pat);svg.appendChild(defs);
+  svg.appendChild(mk('rect',{width:w,height:h,fill:`url(#bg${idx})`}));
+  svg.appendChild(mk('rect',{width:w,height:h,fill:`url(#gr${idx})`,opacity:'0.3'}));
+  [[30,30,380,530],[430,30,384,260],[430,310,384,250],[30,580,784,290],[30,890,784,280]].forEach(([x,y,pw,ph])=>{
+    svg.appendChild(mk('rect',{x,y,width:pw,height:ph,rx:'2',fill:'#0a0f1a',stroke:'#2a2a3e','stroke-width':'2'}));
+  });
+  if(idx%2===0){
+    svg.appendChild(mk('ellipse',{cx:220,cy:350,rx:80,ry:140,fill:'#13182a'}));
+    svg.appendChild(mk('ellipse',{cx:220,cy:210,rx:55,ry:55,fill:'#13182a'}));
+    [50,130,200,260,330,400,490,560,620,680,740].forEach((x,i)=>svg.appendChild(mk('rect',{x,y:700-(i%4)*40,width:40+(i%3)*20,height:160+(i%4)*40,fill:'#0d1523'})));
+  }else{
+    svg.appendChild(mk('ellipse',{cx:190,cy:300,rx:100,ry:160,fill:'#0d1320'}));
+    svg.appendChild(mk('ellipse',{cx:190,cy:160,rx:60,ry:60,fill:'#0d1320'}));
+    for(let i=0;i<8;i++)svg.appendChild(mk('line',{x1:613,y1:690,x2:430+Math.cos(i/8*Math.PI*2)*190,y2:690+Math.sin(i/8*Math.PI*2)*100,stroke:'#ffffff06','stroke-width':'1'}));
+  }
+  return svg;
+}
+
+// ══ INIT ═════════════════════════════════════════════════════════════════════
+(async()=>{db=await openDB();await loadLibrary();renderLibrary();})();
+</script>
+</body>
+</html>
