@@ -392,8 +392,8 @@ class ReaderActivity : BaseActivity() {
 
                 AppBars(state = state)
 
-                // "Switch to EN" FAB — visible when menu is open and a paired EN volume exists
-                if (state.menuVisible && state.manga?.pairedEnMangaId != null) {
+                // "Switch to EN" FAB — always visible when a paired EN volume exists
+                if (state.manga?.pairedEnMangaId != null) {
                     ExtendedFloatingActionButton(
                         onClick = { switchToEnVolume() },
                         icon = { Icon(Icons.Outlined.Translate, contentDescription = null) },

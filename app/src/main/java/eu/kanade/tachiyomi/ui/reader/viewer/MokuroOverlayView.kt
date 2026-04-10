@@ -119,7 +119,6 @@ class MokuroOverlayView(context: Context) : View(context) {
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (event.action != MotionEvent.ACTION_UP) return false
         val tx = event.x
         val ty = event.y
         val (scale, left, top) = imageTransform()
@@ -133,17 +132,24 @@ class MokuroOverlayView(context: Context) : View(context) {
             tx in vx1..vx2 && ty in vy1..vy2
         }
 
-        if (hitIdx < 0) return false
-
-        val block = blocks[hitIdx]
-        if (hitIdx !in revealedBlocks) {
-            // First tap: reveal the block
-            revealedBlocks.add(hitIdx)
-            invalidate()
-        } else {
-            // Second tap (on already-revealed block): fire dictionary lookup for the full block text
-            onWordTapped?.invoke(block, block.text)
+        return when (event.action) {
+            // Claim the touch only when the finger is over a block; otherwise let the
+            // image view underneath handle zoom/pan as normal.
+            MotionEvent.ACTION_DOWN -> hitIdx >= 0
+            MotionEvent.ACTION_UP -> {
+                if (hitIdx < 0) return false
+                val block = blocks[hitIdx]
+                if (hitIdx !in revealedBlocks) {
+                    // First tap: reveal the block text
+                    revealedBlocks.add(hitIdx)
+                    invalidate()
+                } else {
+                    // Second tap: fire dictionary lookup
+                    onWordTapped?.invoke(block, block.text)
+                }
+                true
+            }
+            else -> false
         }
-        return true
     }
 }
