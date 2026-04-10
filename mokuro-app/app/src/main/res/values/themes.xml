@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Windowless dark theme; the WebView owns all drawing -->
+    <style name="Theme.MokuroReader" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">#07090f</item>
+        <item name="android:statusBarColor">#0d1117</item>
+        <item name="android:navigationBarColor">#07090f</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

@@ -47,12 +47,6 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // MyMemory translation API — network only (no caching, always fresh)
-  if (url.hostname === 'api.mymemory.translated.net') {
-    e.respondWith(fetch(e.request));
-    return;
-  }
-
   // App shell — cache-first
   e.respondWith(
     caches.match(e.request).then((cached) => cached || fetch(e.request)),
