@@ -465,6 +465,13 @@ class ReaderViewModel @JvmOverloads constructor(
                     }
                     if (chapterId == -1L) chapterId = initialChapterId
 
+                    // Keep manga state in sync with DB (e.g. pairing changes from manga details)
+                    viewModelScope.launchIO {
+                        getManga.subscribe(mangaId)
+                            .onEach { updated -> mutableState.update { it.copy(manga = updated) } }
+                            .launchIn(viewModelScope)
+                    }
+
                     val context = Injekt.get<Application>()
                     // val source = sourceManager.getOrStub(manga.source)
                     loader = ChapterLoader(

@@ -510,7 +510,7 @@ private fun MangaScreenSmallImpl(
                 onClickRecommend = onRecommendClicked.takeIf { state.showRecommendationsInOverflow },
                 onClickMergedSettings = onMergedSettingsClicked.takeIf { state.manga.source == MERGED_SOURCE_ID },
                 onClickMerge = onMergeClicked.takeIf { state.showMergeInOverflow },
-                onClickPairEnVolume = onClickPairEnVolume.takeIf { state.manga.favorite },
+                onClickPairEnVolume = onClickPairEnVolume,
                 // SY <--
                 actionModeCounter = selectedChapterCount,
                 onCancelActionMode = { onAllChapterSelected(false) },
@@ -968,7 +968,7 @@ private fun MangaScreenLargeImpl(
                 onClickRecommend = onRecommendClicked.takeIf { state.showRecommendationsInOverflow },
                 onClickMergedSettings = onMergedSettingsClicked.takeIf { state.manga.source == MERGED_SOURCE_ID },
                 onClickMerge = onMergeClicked.takeIf { state.showMergeInOverflow },
-                onClickPairEnVolume = onClickPairEnVolume.takeIf { state.manga.favorite },
+                onClickPairEnVolume = onClickPairEnVolume,
                 // SY <--
                 actionModeCounter = selectedChapterCount,
                 onSelectAll = { onAllChapterSelected(true) },
