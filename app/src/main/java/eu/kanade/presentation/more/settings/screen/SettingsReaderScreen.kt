@@ -689,7 +689,9 @@ object SettingsReaderScreen : SearchableSettings {
         val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             if (uri != null) {
                 scope.launch {
-                    try { jmdictService.loadJmdict(uri.toString()) } catch (_: Exception) {}
+                    try {
+                        jmdictService.loadJmdict(uri.toString())
+                    } catch (_: Exception) {}
                 }
             }
         }
