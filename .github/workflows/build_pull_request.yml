@@ -35,6 +35,7 @@ jobs:
           fetch-depth: 0
 
       - name: Dependency Review
+        if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@05fe4576374b728f0c523d6a13d64c25081e0803 # v4.8.3
 
       - name: Validate Gradle Wrapper
