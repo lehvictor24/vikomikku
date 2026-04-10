@@ -23,7 +23,10 @@ class JmdictService(
     private val preferenceStore: PreferenceStore,
 ) {
 
-    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+    }
 
     /** Path to the user-supplied JMdict JSON file (empty = use mini dict only). */
     private val jmdictPath = preferenceStore.getString(PREF_JMDICT_PATH, "")

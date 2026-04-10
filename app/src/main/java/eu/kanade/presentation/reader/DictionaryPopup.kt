@@ -70,7 +70,10 @@ fun DictionaryPopup(
         val engine = TextToSpeech(context) { /* init listener */ }
         engine.language = Locale.JAPANESE
         tts = engine
-        onDispose { engine.stop(); engine.shutdown() }
+        onDispose {
+            engine.stop()
+            engine.shutdown()
+        }
     }
 
     ModalBottomSheet(

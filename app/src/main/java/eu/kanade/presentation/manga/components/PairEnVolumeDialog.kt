@@ -19,8 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.interactor.GetFavorites
+import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 import uy.kohesive.injekt.Injekt
@@ -58,7 +58,10 @@ fun PairEnVolumeDialog(
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onPair(null); onDismiss() }
+                            .clickable {
+                                onPair(null)
+                                onDismiss()
+                            }
                             .padding(vertical = 12.dp),
                     )
                     HorizontalDivider()
@@ -70,7 +73,10 @@ fun PairEnVolumeDialog(
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onPair(manga.id); onDismiss() }
+                                .clickable {
+                                    onPair(manga.id)
+                                    onDismiss()
+                                }
                                 .padding(vertical = 12.dp, horizontal = 4.dp),
                         )
                     }

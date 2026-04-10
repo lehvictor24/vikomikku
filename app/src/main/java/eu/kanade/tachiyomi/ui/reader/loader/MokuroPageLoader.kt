@@ -21,7 +21,10 @@ internal class MokuroPageLoader(private val mokuroFile: UniFile) : PageLoader() 
 
     override var isLocal: Boolean = true
 
-    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+    }
 
     override suspend fun getPages(): List<ReaderPage> {
         val imageDir = mokuroFile.parentFile ?: return emptyList()
