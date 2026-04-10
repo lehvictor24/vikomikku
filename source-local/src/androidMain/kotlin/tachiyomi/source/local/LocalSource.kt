@@ -353,7 +353,12 @@ actual class LocalSource(
         val chapters = fileSystem.getFilesInMangaDirectory(manga.url)
             // Only keep supported formats
             .filterNot { it.name.orEmpty().startsWith('.') }
-            .filter { it.isDirectory || Archive.isSupported(it) || it.extension.equals("epub", true) }
+            .filter {
+                it.isDirectory ||
+                    Archive.isSupported(it) ||
+                    it.extension.equals("epub", true) ||
+                    it.extension.equals("mokuro", true)
+            }
             .map { chapterFile ->
                 SChapter.create().apply {
                     url = "${manga.url}/${chapterFile.name}"
@@ -447,6 +452,17 @@ actual class LocalSource(
 
                         entry?.let { coverManager.update(manga, epub.getInputStream(it)!!) }
                     }
+                }
+                is Format.Mokuro -> {
+                    // Use the first image in the same directory as the .mokuro file as cover
+                    format.file.parentFile
+                        ?.listFiles()
+                        ?.filter { !it.isDirectory && ImageUtil.isImage(it.name) { it.openInputStream() } }
+                        ?.sortedWith { f1, f2 ->
+                            f1.name.orEmpty().compareToCaseInsensitiveNaturalOrder(f2.name.orEmpty())
+                        }
+                        ?.firstOrNull()
+                        ?.let { coverManager.update(manga, it.openInputStream()) }
                 }
             }
         } catch (e: Throwable) {

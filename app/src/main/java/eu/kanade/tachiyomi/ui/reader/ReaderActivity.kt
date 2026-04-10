@@ -66,6 +66,7 @@ import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.connections.service.ConnectionsPreferences
 import eu.kanade.domain.manga.model.readingMode
 import eu.kanade.domain.ui.UiPreferences
+import eu.kanade.presentation.reader.DictionaryPopup
 import eu.kanade.presentation.reader.ChapterListDialog
 import eu.kanade.presentation.reader.DisplayRefreshHost
 import eu.kanade.presentation.reader.OrientationSelectDialog
@@ -92,6 +93,8 @@ import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.AddToLibra
 import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.Error
 import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.Success
 import eu.kanade.tachiyomi.ui.reader.loader.HttpPageLoader
+import eu.kanade.tachiyomi.data.dictionary.JmdictService
+import eu.kanade.tachiyomi.ui.reader.model.MokuroBlock
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
@@ -179,6 +182,20 @@ class ReaderActivity : BaseActivity() {
     lateinit var binding: ReaderActivityBinding
 
     val viewModel by viewModels<ReaderViewModel>()
+
+    // ── Mokuro dictionary popup state ────────────────────────────────────────
+    private val jmdictService = Injekt.get<JmdictService>()
+    private val _dictionaryBlock = mutableStateOf<MokuroBlock?>(null)
+    private val _dictionaryWord = mutableStateOf<String>("")
+
+    /** Called from [MokuroOverlayView] (on main thread) to show the dictionary popup. */
+    fun showDictionary(block: MokuroBlock, word: String) {
+        _dictionaryWord.value = word
+        _dictionaryBlock.value = block
+    }
+    private fun dismissDictionary() {
+        _dictionaryBlock.value = null
+    }
     private var assistUrl: String? = null
 
     // SY -->
@@ -350,6 +367,31 @@ class ReaderActivity : BaseActivity() {
                 ContentOverlay(state = state)
 
                 AppBars(state = state)
+            }
+
+            // Mokuro dictionary popup
+            val dictionaryBlock = _dictionaryBlock.value
+            if (dictionaryBlock != null) {
+                val word = _dictionaryWord.value
+                val entry = jmdictService.lookup(word)
+                    ?: jmdictService.lookup(dictionaryBlock.text)
+                if (entry != null) {
+                    val tokens = remember(dictionaryBlock.text) {
+                        jmdictService.tokenize(dictionaryBlock.text)
+                    }
+                    DictionaryPopup(
+                        entry = entry,
+                        contextText = dictionaryBlock.text,
+                        contextTokens = tokens,
+                        onTokenTap = { tappedWord ->
+                            val newEntry = jmdictService.lookup(tappedWord)
+                            if (newEntry != null) {
+                                _dictionaryWord.value = tappedWord
+                            }
+                        },
+                        onDismiss = { dismissDictionary() },
+                    )
+                }
             }
 
             // KMK -->

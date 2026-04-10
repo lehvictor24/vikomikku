@@ -49,6 +49,7 @@ import tachiyomi.data.UpdateStrategyColumnAdapter
 import tachiyomi.domain.manga.interactor.GetCustomMangaInfo
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.storage.service.StorageManager
+import eu.kanade.tachiyomi.data.dictionary.JmdictService
 import tachiyomi.source.local.image.LocalCoverManager
 import tachiyomi.source.local.io.LocalSourceFileSystem
 import uy.kohesive.injekt.api.InjektModule
@@ -169,6 +170,8 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { LocalSourceFileSystem(get()) }
         addSingletonFactory { LocalCoverManager(app, get()) }
         addSingletonFactory { StorageManager(app, get()) }
+
+        addSingletonFactory { JmdictService(app, get()) }
 
         // SY -->
         addSingletonFactory { EHentaiUpdateHelper(app) }

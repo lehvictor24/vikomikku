@@ -21,6 +21,11 @@ open class ReaderPage(
 
     /** Value to check if a page is too wide to be doubled up */
     var fullPage: Boolean = false
+
+    // Mokuro OCR data — non-null when this page was loaded from a .mokuro file
+    var mokuroBlocks: List<MokuroBlock>? = null
+    var mokuroImageWidth: Int = 0
+    var mokuroImageHeight: Int = 0
         set(value) {
             field = value
             if (value) shiftedPage = false

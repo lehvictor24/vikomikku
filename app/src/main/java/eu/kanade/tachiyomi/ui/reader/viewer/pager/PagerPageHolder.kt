@@ -11,6 +11,7 @@ import eu.kanade.tachiyomi.databinding.ReaderErrorBinding
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.reader.model.InsertPage
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
+import eu.kanade.tachiyomi.ui.reader.viewer.MokuroOverlayView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
@@ -431,6 +432,25 @@ class PagerPageHolder(
     override fun onImageLoaded() {
         super.onImageLoaded()
         progressIndicator?.hide()
+        attachMokuroOverlay()
+    }
+
+    private fun attachMokuroOverlay() {
+        val blocks = page.mokuroBlocks?.takeIf { it.isNotEmpty() } ?: return
+        // Remove any existing overlay from a previous load
+        findViewWithTag<MokuroOverlayView>(TAG_MOKURO_OVERLAY)?.let { removeView(it) }
+        val overlay = MokuroOverlayView(context).apply {
+            tag = TAG_MOKURO_OVERLAY
+            setBlocks(blocks, page.mokuroImageWidth, page.mokuroImageHeight)
+            onWordTapped = { block, word ->
+                viewer.activity.showDictionary(block, word)
+            }
+        }
+        addView(overlay, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+    }
+
+    companion object {
+        private const val TAG_MOKURO_OVERLAY = "mokuro_overlay"
     }
 
     /**
