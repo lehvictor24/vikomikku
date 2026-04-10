@@ -35,6 +35,11 @@ A free and open source manga reader which is based off TachiyomiSY & Mihon/Tachi
 
 ## Features
 
+### Vikomikku's added features:
+- `Mokuro OCR reader` — open Mokuro-processed manga folders as a local source; each page shows an interactive text overlay with selectable Japanese text blocks.
+- `Japanese dictionary popup` — tap any word on a Mokuro OCR overlay to look it up instantly. Shows reading (furigana), part-of-speech, English definitions, a highlighted context sentence, and a TTS audio button. Supports loading a full JMdict JSON file for 100k+ entries.
+- `JP/EN volume pairing` — pair a Japanese manga with its English counterpart from your library. A one-tap button in the reader jumps to the corresponding English page using configurable sync anchors with linear interpolation between anchor points.
+
 ### Komikku's unique features:
 - `Suggestions` automatically showing source-website's recommendations / suggestions / related to current entry for all sources.
 - `Hidden categories` to hide yours things from *nosy* people.
