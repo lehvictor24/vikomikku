@@ -26,8 +26,4 @@ open class ReaderPage(
     var mokuroBlocks: List<MokuroBlock>? = null
     var mokuroImageWidth: Int = 0
     var mokuroImageHeight: Int = 0
-        set(value) {
-            field = value
-            if (value) shiftedPage = false
-        }
 }

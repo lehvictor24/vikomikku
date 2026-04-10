@@ -170,6 +170,7 @@ class MangaRestorer(
                 version = manga.version,
                 isSyncing = 1,
                 notes = manga.notes,
+                pairedEnMangaId = manga.pairedEnMangaId,
             )
         }
         return manga

@@ -61,7 +61,7 @@ fun DictionaryPopup(
     onTokenTap: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartialExpansion = false)
+    val sheetState = rememberModalBottomSheetState()
     val context = LocalContext.current
 
     // TTS engine — set up once and disposed when the sheet is gone
